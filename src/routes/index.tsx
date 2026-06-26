@@ -36,7 +36,7 @@ const LETTER_COLORS = [
 const NAME = "GiftValley";
 const DATE_TEXT = "29 June 2026";
 
-type Cat = { name: string; icon: JSX.Element; border: [string, string] };
+type Cat = { name: string; icon: ReactElement; border: [string, string] };
 
 const ICON_PROPS = {
   width: 36,
