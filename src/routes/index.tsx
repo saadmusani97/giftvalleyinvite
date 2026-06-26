@@ -1,10 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type ReactElement } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValueEvent,
+  useReducedMotion,
+} from "framer-motion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "GiftValley — You Are Invited" },
+      { title: "GiftValley — Grand Opening Invitation" },
       {
         name: "description",
         content:
@@ -21,667 +29,1104 @@ export const Route = createFileRoute("/")({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@500;700&family=Poppins:wght@300;400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,400&family=Italiana&family=Inter:wght@300;400;500;600&family=Great+Vibes&display=swap",
       },
     ],
   }),
   component: Invitation,
 });
 
-const NAME = "GiftValley";
-const DATE_TEXT = "29 June 2026";
+const NAME = "GIFTVALLEY";
+const DATE_TEXT = "29 · JUNE · 2026";
 
-type Cat = { name: string; icon: ReactElement };
+type Cat = { name: string; tag: string; icon: ReactElement };
 
 const ICON_PROPS = {
-  width: 32,
-  height: 32,
+  width: 56,
+  height: 56,
   viewBox: "0 0 24 24",
   fill: "none",
-  stroke: "#3a2418",
-  strokeWidth: 1.4,
+  stroke: "currentColor",
+  strokeWidth: 1.2,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
 };
 
 const CATEGORIES: Cat[] = [
-  { name: "Gifts", icon: (<svg {...ICON_PROPS}><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18"/><path d="M12 9v12"/><path d="M12 9c-1.5-2-4-2.5-5-1.2C6 9 7.5 9 9 9h3z"/><path d="M12 9c1.5-2 4-2.5 5-1.2C18 9 16.5 9 15 9h-3z"/></svg>) },
-  { name: "Toys", icon: (<svg {...ICON_PROPS}><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><path d="M7 8c-1.5 1.2-2 3-2 4.5C5 17 8 20 12 20s7-3 7-7.5c0-1.5-.5-3.3-2-4.5"/><circle cx="10" cy="13" r=".7"/><circle cx="14" cy="13" r=".7"/><path d="M10.5 16c.5.5 2.5.5 3 0"/></svg>) },
-  { name: "Sports", icon: (<svg {...ICON_PROPS}><path d="M4 20l8-8"/><path d="M10 10l5-5c1-1 3-1 4 0s1 3 0 4l-5 5"/><circle cx="18" cy="18" r="2.2"/></svg>) },
-  { name: "Video Games", icon: (<svg {...ICON_PROPS}><path d="M6 8h12a3 3 0 013 3v4a2.5 2.5 0 01-4.5 1.5L15 14H9l-1.5 2.5A2.5 2.5 0 013 15v-4a3 3 0 013-3z"/><circle cx="9" cy="12" r=".9"/><circle cx="15" cy="12" r=".9"/></svg>) },
-  { name: "RC Cars", icon: (<svg {...ICON_PROPS}><path d="M5 16h14l-1.5-4a2 2 0 00-2-1.4H8.5a2 2 0 00-2 1.4L5 16z"/><path d="M3 16h18"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>) },
-  { name: "Showpieces", icon: (<svg {...ICON_PROPS}><path d="M9 4h6l-1 3a3 3 0 11-4 0L9 4z"/><path d="M11 10v5"/><path d="M13 10v5"/><path d="M8 15h8"/><path d="M7 20h10"/></svg>) },
-  { name: "Bikes", icon: (<svg {...ICON_PROPS}><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M10 9l2 4"/><path d="M14 6h2l-1 3"/></svg>) },
+  { name: "Gifts", tag: "01", icon: (<svg {...ICON_PROPS}><rect x="3" y="9" width="18" height="12" rx="1"/><path d="M3 13h18"/><path d="M12 9v12"/><path d="M12 9c-1.5-2-4-2.5-5-1.2C6 9 7.5 9 9 9h3z"/><path d="M12 9c1.5-2 4-2.5 5-1.2C18 9 16.5 9 15 9h-3z"/></svg>) },
+  { name: "Toys", tag: "02", icon: (<svg {...ICON_PROPS}><circle cx="8" cy="6" r="1.6"/><circle cx="16" cy="6" r="1.6"/><path d="M7 8c-1.5 1.2-2 3-2 4.5C5 17 8 20 12 20s7-3 7-7.5c0-1.5-.5-3.3-2-4.5"/><circle cx="10" cy="13" r=".7"/><circle cx="14" cy="13" r=".7"/></svg>) },
+  { name: "Showpieces", tag: "03", icon: (<svg {...ICON_PROPS}><path d="M9 4h6l-1 3a3 3 0 11-4 0L9 4z"/><path d="M11 10v5"/><path d="M13 10v5"/><path d="M8 15h8"/><path d="M7 20h10"/></svg>) },
+  { name: "Sports", tag: "04", icon: (<svg {...ICON_PROPS}><path d="M4 20l8-8"/><path d="M10 10l5-5c1-1 3-1 4 0s1 3 0 4l-5 5"/><circle cx="18" cy="18" r="2.2"/></svg>) },
+  { name: "Video Games", tag: "05", icon: (<svg {...ICON_PROPS}><path d="M6 8h12a3 3 0 013 3v4a2.5 2.5 0 01-4.5 1.5L15 14H9l-1.5 2.5A2.5 2.5 0 013 15v-4a3 3 0 013-3z"/><circle cx="9" cy="12" r=".9"/><circle cx="15" cy="12" r=".9"/></svg>) },
+  { name: "RC Cars", tag: "06", icon: (<svg {...ICON_PROPS}><path d="M5 16h14l-1.5-4a2 2 0 00-2-1.4H8.5a2 2 0 00-2 1.4L5 16z"/><path d="M3 16h18"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>) },
+  { name: "Bikes", tag: "07", icon: (<svg {...ICON_PROPS}><circle cx="6" cy="17" r="3"/><circle cx="18" cy="17" r="3"/><path d="M6 17l4-8h5l3 8"/><path d="M10 9l2 4"/><path d="M14 6h2l-1 3"/></svg>) },
 ];
 
-// Sage green floral pattern SVG (data URI) used for envelope + letter
-const FLORAL_BG =
-  "url(\"data:image/svg+xml;utf8," +
-  encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'>
-       <defs>
-         <pattern id='p' x='0' y='0' width='80' height='80' patternUnits='userSpaceOnUse'>
-           <g fill='none' stroke='#6f8a5e' stroke-width='0.7' opacity='0.55'>
-             <circle cx='40' cy='40' r='14'/>
-             <circle cx='40' cy='40' r='8'/>
-             <circle cx='40' cy='40' r='3' fill='#6f8a5e' opacity='0.6'/>
-             <path d='M40 8 Q46 22 40 30 Q34 22 40 8Z' fill='#7a9968' opacity='0.5'/>
-             <path d='M40 72 Q46 58 40 50 Q34 58 40 72Z' fill='#7a9968' opacity='0.5'/>
-             <path d='M8 40 Q22 46 30 40 Q22 34 8 40Z' fill='#7a9968' opacity='0.5'/>
-             <path d='M72 40 Q58 46 50 40 Q58 34 72 40Z' fill='#7a9968' opacity='0.5'/>
-             <path d='M18 18 Q28 26 30 30 Q26 28 18 18Z' fill='#6f8a5e' opacity='0.4'/>
-             <path d='M62 18 Q52 26 50 30 Q54 28 62 18Z' fill='#6f8a5e' opacity='0.4'/>
-             <path d='M18 62 Q28 54 30 50 Q26 52 18 62Z' fill='#6f8a5e' opacity='0.4'/>
-             <path d='M62 62 Q52 54 50 50 Q54 52 62 62Z' fill='#6f8a5e' opacity='0.4'/>
-             <circle cx='0' cy='0' r='4'/>
-             <circle cx='80' cy='0' r='4'/>
-             <circle cx='0' cy='80' r='4'/>
-             <circle cx='80' cy='80' r='4'/>
-           </g>
-         </pattern>
-       </defs>
-       <rect width='160' height='160' fill='url(#p)'/>
-     </svg>`
-  ) +
-  "\")";
-
 function Invitation() {
-  const [stage, setStage] = useState<"sealed" | "opening" | "letter" | "details">("sealed");
+  const reduce = useReducedMotion();
   const [toast, setToast] = useState(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = prev; };
-  }, []);
-
-  const playCrack = () => {
-    try {
-      const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!audioCtxRef.current) audioCtxRef.current = new Ctx();
-      const ac = audioCtxRef.current;
-      // wax crack: short noise burst
-      const dur = 0.18;
-      const buf = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) {
-        const t = i / d.length;
-        d[i] = (Math.random() * 2 - 1) * (1 - t) * 0.6;
-      }
-      const src = ac.createBufferSource();
-      src.buffer = buf;
-      const g = ac.createGain();
-      g.gain.value = 0.6;
-      const f = ac.createBiquadFilter();
-      f.type = "bandpass"; f.frequency.value = 1200; f.Q.value = 0.8;
-      src.connect(f).connect(g).connect(ac.destination);
-      src.start();
-      // chime after
-      const notes = [523.25, 659.25, 783.99];
-      let t0 = ac.currentTime + 0.25;
-      notes.forEach((freq) => {
-        const o = ac.createOscillator();
-        const gg = ac.createGain();
-        o.type = "sine"; o.frequency.value = freq;
-        gg.gain.setValueAtTime(0, t0);
-        gg.gain.linearRampToValueAtTime(0.25, t0 + 0.02);
-        gg.gain.linearRampToValueAtTime(0, t0 + 0.25);
-        o.connect(gg).connect(ac.destination);
-        o.start(t0); o.stop(t0 + 0.3);
-        t0 += 0.18;
-      });
-    } catch { /* ignore */ }
-  };
-
-  const openEnvelope = () => {
-    if (stage !== "sealed") return;
-    playCrack();
-    setStage("opening");
-    setTimeout(() => setStage("letter"), 1400);
-    setTimeout(() => setStage("details"), 5200);
-  };
 
   const onShare = async () => {
-    const url = window.location.href;
+    const url = typeof window !== "undefined" ? window.location.href : "";
     try {
       if (navigator.share) { await navigator.share({ title: "GiftValley Grand Opening", url }); return; }
-    } catch { /* fallthrough */ }
+    } catch { /* ignore */ }
     try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
     setToast(true);
     setTimeout(() => setToast(false), 2000);
   };
 
   return (
-    <div className="gv-root" data-stage={stage}>
+    <div className="gv">
       <style>{CSS}</style>
 
-      {/* Backdrop: dark warm wood/velvet */}
-      <div className="gv-backdrop" aria-hidden />
+      <Cursor />
+      <Nav />
+      <ProgressBar />
 
-      {/* ENVELOPE SCENE */}
-      {stage !== "details" && (
-        <div className="gv-scene" onClick={openEnvelope} role="button" aria-label="Open invitation">
-          <div className="gv-envelope">
-            {/* Envelope body (back) */}
-            <div className="gv-env-body" />
-            {/* Letter inside (slides up) */}
-            <div className="gv-letter">
-              <div className="gv-letter-inner">
-                <div className="gv-monogram">GV</div>
-                <h2 className="gv-you-are">You are invited</h2>
-                <div className="gv-flourish" aria-hidden>
-                  <svg viewBox="0 0 200 20" width="180" height="18">
-                    <path d="M2 10 Q50 -2 100 10 T 198 10" fill="none" stroke="#8a3a2a" strokeWidth="0.8"/>
-                    <circle cx="100" cy="10" r="2" fill="#8a3a2a"/>
-                  </svg>
-                </div>
-                <p className="gv-letter-sub">to the grand opening of</p>
-                <h3 className="gv-letter-name">GiftValley</h3>
-              </div>
-            </div>
-            {/* Front flap (bottom triangle decorative) */}
-            <div className="gv-env-front" />
-            {/* Top flap (opens) */}
-            <div className="gv-env-flap">
-              <div className="gv-env-flap-inner" />
-            </div>
-            {/* Wax seal */}
-            <div className="gv-seal" aria-hidden>
-              <div className="gv-seal-half gv-seal-left">
-                <div className="gv-seal-mark">G</div>
-              </div>
-              <div className="gv-seal-half gv-seal-right">
-                <div className="gv-seal-mark">V</div>
-              </div>
-            </div>
-          </div>
+      <HeroOpening reduce={!!reduce} />
+      <InvitedAct />
+      <NameAct />
+      <CategoryAct />
+      <DateAct />
+      <FinaleAct onShare={onShare} />
 
-          <div className="gv-tap-hint">
-            <span className="gv-tap-dot" />
-            <span>Tap the wax seal to open</span>
-          </div>
+      <footer className="gv-footer">
+        <div className="gv-footer-row">
+          <span className="gv-mark">GV</span>
+          <span>GiftValley · Est. 2026</span>
+          <span>Naya Nagar</span>
         </div>
-      )}
+      </footer>
 
-      {/* INVITATION DETAILS */}
-      {stage === "details" && (
-        <main className="gv-details">
-          <div className="gv-paper">
-            <div className="gv-paper-inner">
-              <div className="gv-mono-small">GV</div>
-              <div className="gv-eyebrow">— You are cordially invited to the —</div>
-              <h1 className="gv-grand">Grand Opening</h1>
-              <div className="gv-rule" />
-              <h2 className="gv-brand">{NAME}</h2>
-              <p className="gv-tagline">Where Every Gift Tells a Story</p>
-
-              <div className="gv-date">{DATE_TEXT}</div>
-              <div className="gv-time">Monday · 11:00 AM onwards</div>
-
-              <div className="gv-addr">
-                <div className="gv-addr-1">Shop No. 8, Akash Ganga Building</div>
-                <div className="gv-addr-2">Naya Nagar</div>
-              </div>
-
-              <div className="gv-cats">
-                {CATEGORIES.map((c) => (
-                  <div key={c.name} className="gv-cat">
-                    <div className="gv-cat-icon">{c.icon}</div>
-                    <div className="gv-cat-label">{c.name}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="gv-actions">
-                <a
-                  className="gv-btn gv-btn-primary"
-                  href="https://maps.google.com/?q=Shop+No+8+Akash+Ganga+Building+Naya+Nagar"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Get Directions
-                </a>
-                <button className="gv-btn gv-btn-ghost" onClick={onShare}>
-                  Share Invite
-                </button>
-              </div>
-
-              <div className="gv-foot">With warm regards · The GiftValley Family</div>
-            </div>
-          </div>
-        </main>
-      )}
-
-      <div className={"gv-toast" + (toast ? " gv-toast-show" : "")}>Link copied to clipboard</div>
+      <div className={"gv-toast" + (toast ? " show" : "")}>Link copied</div>
     </div>
   );
 }
 
-const SAGE = "#b8c5a0";
-const SAGE_DEEP = "#8fa478";
-const WAX = "#a8362a";
-const WAX_DARK = "#7a2418";
-const PAPER = "#e9e3d0";
-const INK = "#3a2418";
+/* ============== NAV / CURSOR / PROGRESS ============== */
+
+function Nav() {
+  return (
+    <div className="gv-nav">
+      <div className="gv-nav-mark">GV</div>
+      <div className="gv-nav-meta">
+        <span className="gv-dot" />
+        <span>Grand Opening · 29.06.2026</span>
+      </div>
+    </div>
+  );
+}
+
+function ProgressBar() {
+  const { scrollYProgress } = useScroll();
+  const w = useSpring(scrollYProgress, { stiffness: 120, damping: 30 });
+  return (
+    <motion.div
+      className="gv-progress"
+      style={{ scaleX: w }}
+    />
+  );
+}
+
+function Cursor() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let x = window.innerWidth / 2, y = window.innerHeight / 2;
+    let tx = x, ty = y;
+    let raf = 0;
+    const onMove = (e: MouseEvent) => { tx = e.clientX; ty = e.clientY; };
+    const loop = () => {
+      x += (tx - x) * 0.18;
+      y += (ty - y) * 0.18;
+      el.style.transform = `translate3d(${x - 12}px, ${y - 12}px, 0)`;
+      raf = requestAnimationFrame(loop);
+    };
+    window.addEventListener("mousemove", onMove);
+    raf = requestAnimationFrame(loop);
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("mousemove", onMove); };
+  }, []);
+  return <div ref={ref} className="gv-cursor" aria-hidden />;
+}
+
+/* ============== ACT 1: HERO ENVELOPE OPENS ============== */
+
+function HeroOpening({ reduce }: { reduce: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+
+  // Three beats inside the pinned hero:
+  // 0.00 - 0.18  →  envelope intro / scroll hint
+  // 0.18 - 0.55  →  seal cracks, flap opens
+  // 0.55 - 1.00  →  letter rises, "You are invited" reveals, transitions out
+  const sealHalfL = useTransform(scrollYProgress, [0.18, 0.45], [0, -160]);
+  const sealHalfR = useTransform(scrollYProgress, [0.18, 0.45], [0, 160]);
+  const sealRotL = useTransform(scrollYProgress, [0.18, 0.45], [0, -38]);
+  const sealRotR = useTransform(scrollYProgress, [0.18, 0.45], [0, 38]);
+  const sealOpacity = useTransform(scrollYProgress, [0.18, 0.5], [1, 0]);
+  const sealScale = useTransform(scrollYProgress, [0, 0.18], [0.8, 1]);
+
+  const flapRotate = useTransform(scrollYProgress, [0.25, 0.6], [0, -178]);
+  const letterY = useTransform(scrollYProgress, [0.45, 0.85], ["0%", "-46%"]);
+  const letterTextOpacity = useTransform(scrollYProgress, [0.6, 0.78], [0, 1]);
+  const letterTextY = useTransform(scrollYProgress, [0.6, 0.82], [24, 0]);
+
+  const envelopeScale = useTransform(scrollYProgress, [0, 0.15, 0.9, 1], [0.92, 1, 1.02, 1.08]);
+  const envelopeY = useTransform(scrollYProgress, [0, 1], ["0vh", "-6vh"]);
+
+  const hintOpacity = useTransform(scrollYProgress, [0, 0.08, 0.18], [1, 1, 0]);
+  const vignette = useTransform(scrollYProgress, [0, 1], [0.55, 0.9]);
+
+  return (
+    <section ref={ref} className="gv-hero">
+      <div className="gv-hero-sticky">
+        <motion.div
+          className="gv-vignette"
+          style={{ opacity: vignette as unknown as number }}
+          aria-hidden
+        />
+        <FilmGrain />
+
+        {/* Top label */}
+        <div className="gv-act-label">
+          <span className="gv-line" />
+          <span>I.  The Invitation</span>
+        </div>
+
+        <motion.div
+          className="gv-envelope-wrap"
+          style={{ scale: envelopeScale, y: envelopeY }}
+        >
+          <div className="gv-envelope">
+            {/* back */}
+            <div className="gv-env-back" />
+
+            {/* letter inside */}
+            <motion.div className="gv-letter" style={{ y: letterY }}>
+              <motion.div
+                className="gv-letter-content"
+                style={{ opacity: letterTextOpacity, y: letterTextY }}
+              >
+                <div className="gv-letter-mono">G · V</div>
+                <h2 className="gv-script">You are invited</h2>
+                <div className="gv-hairline" />
+                <p className="gv-letter-sub">to a quiet unveiling of</p>
+                <p className="gv-letter-brand">GiftValley</p>
+              </motion.div>
+            </motion.div>
+
+            {/* front pocket */}
+            <div className="gv-env-front" />
+
+            {/* top flap */}
+            <motion.div className="gv-env-flap" style={{ rotateX: flapRotate }}>
+              <div className="gv-env-flap-inner" />
+            </motion.div>
+
+            {/* wax seal */}
+            <motion.div
+              className="gv-seal"
+              style={{ opacity: sealOpacity, scale: sealScale }}
+              aria-hidden
+            >
+              <motion.div
+                className="gv-seal-half gv-seal-l"
+                style={{ x: sealHalfL, rotate: sealRotL }}
+              >
+                <span>G</span>
+              </motion.div>
+              <motion.div
+                className="gv-seal-half gv-seal-r"
+                style={{ x: sealHalfR, rotate: sealRotR }}
+              >
+                <span>V</span>
+              </motion.div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+        <motion.div className="gv-scroll-hint" style={{ opacity: hintOpacity }}>
+          <span>Scroll to open</span>
+          <div className="gv-scroll-arrow" />
+        </motion.div>
+      </div>
+      {reduce ? null : null}
+    </section>
+  );
+}
+
+/* ============== ACT 2: "INVITED" KINETIC TEXT ============== */
+
+function InvitedAct() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const x = useTransform(scrollYProgress, [0, 1], ["20%", "-60%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+
+  return (
+    <section ref={ref} className="gv-marquee">
+      <motion.div className="gv-marquee-row" style={{ x, opacity }}>
+        <span className="gv-marquee-word">cordially</span>
+        <span className="gv-marquee-amp">&</span>
+        <span className="gv-marquee-word italic">warmly</span>
+        <span className="gv-marquee-amp">·</span>
+        <span className="gv-marquee-word">invited</span>
+        <span className="gv-marquee-amp">·</span>
+        <span className="gv-marquee-word italic">to witness</span>
+      </motion.div>
+      <div className="gv-marquee-sub">
+        A retail house of toys, gifts, showpieces, sports, video games, RC cars & bikes.
+      </div>
+    </section>
+  );
+}
+
+/* ============== ACT 3: BRAND NAME REVEAL ============== */
+
+function NameAct() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+
+  const containerOpacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
+  const letterSpacing = useTransform(scrollYProgress, [0.1, 0.6], ["0.4em", "0.08em"]);
+  const scale = useTransform(scrollYProgress, [0.1, 0.6], [0.85, 1]);
+
+  return (
+    <section ref={ref} className="gv-name-act">
+      <div className="gv-name-sticky">
+        <motion.div className="gv-name-eye" style={{ opacity: containerOpacity }}>
+          presenting
+        </motion.div>
+        <motion.h2
+          className="gv-name"
+          style={{
+            opacity: containerOpacity,
+            letterSpacing: letterSpacing as unknown as string,
+            scale,
+          }}
+        >
+          {NAME.split("").map((ch, i) => {
+            const start = 0.15 + i * 0.04;
+            const end = start + 0.08;
+            return (
+              <Letter key={i} progress={scrollYProgress} start={start} end={end} ch={ch} />
+            );
+          })}
+        </motion.h2>
+        <motion.div className="gv-name-tag" style={{ opacity: containerOpacity }}>
+          where every gift tells a story
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function Letter({
+  progress,
+  start,
+  end,
+  ch,
+}: {
+  progress: ReturnType<typeof useScroll>["scrollYProgress"];
+  start: number;
+  end: number;
+  ch: string;
+}) {
+  const opacity = useTransform(progress, [start, end], [0, 1]);
+  const y = useTransform(progress, [start, end], [40, 0]);
+  const blur = useTransform(progress, [start, end], [8, 0]);
+  const filter = useTransform(blur, (b) => `blur(${b}px)`);
+  return (
+    <motion.span style={{ opacity, y, filter }} className="gv-name-letter">
+      {ch}
+    </motion.span>
+  );
+}
+
+/* ============== ACT 4: CATEGORY HORIZONTAL SCROLL ============== */
+
+function CategoryAct() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
+  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-72%"]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.1, 0.2], [1, 1, 0]);
+
+  return (
+    <section ref={ref} className="gv-cats">
+      <div className="gv-cats-sticky">
+        <motion.div className="gv-cats-title" style={{ opacity: titleOpacity }}>
+          <div className="gv-act-label dark">
+            <span className="gv-line dark" />
+            <span>II.  The Collection</span>
+          </div>
+          <h3>
+            Seven worlds <em>under one roof.</em>
+          </h3>
+        </motion.div>
+        <motion.div className="gv-cats-track" style={{ x }}>
+          {CATEGORIES.map((c, i) => (
+            <article key={c.name} className="gv-cat" data-i={i}>
+              <div className="gv-cat-tag">{c.tag}</div>
+              <div className="gv-cat-icon">{c.icon}</div>
+              <h4 className="gv-cat-name">{c.name}</h4>
+              <div className="gv-cat-rule" />
+              <p className="gv-cat-desc">{CAT_DESC[c.name]}</p>
+            </article>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+}
+
+const CAT_DESC: Record<string, string> = {
+  Gifts: "Wrapped, ribboned, ready. For birthdays, anniversaries, and quiet thank-yous.",
+  Toys: "From soft plush to clever builds — joy for every small pair of hands.",
+  Showpieces: "Curated objects that make a shelf feel like a story.",
+  Sports: "Gear that meets you at the start line and stays the whole way.",
+  "Video Games": "Worlds you fall into, controllers that feel just right.",
+  "RC Cars": "Pocket horsepower. Real engineering. Outright fun.",
+  Bikes: "First rides, mountain runs, weekend commutes. Pick a saddle.",
+};
+
+/* ============== ACT 5: GRAND OPENING DATE ============== */
+
+function DateAct() {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const yKick = useTransform(scrollYProgress, [0, 0.5], [80, 0]);
+  const opK = useTransform(scrollYProgress, [0.1, 0.45], [0, 1]);
+  const dateScale = useTransform(scrollYProgress, [0.2, 0.6], [1.4, 1]);
+  const dateOp = useTransform(scrollYProgress, [0.2, 0.55], [0, 1]);
+  const subOp = useTransform(scrollYProgress, [0.45, 0.7], [0, 1]);
+
+  return (
+    <section ref={ref} className="gv-date-act">
+      <div className="gv-date-sticky">
+        <motion.div className="gv-date-kicker" style={{ y: yKick, opacity: opK }}>
+          <span className="gv-hairline-h" />
+          MARK THE DAY
+          <span className="gv-hairline-h" />
+        </motion.div>
+        <motion.h2
+          className="gv-date-big"
+          style={{ scale: dateScale, opacity: dateOp }}
+        >
+          {DATE_TEXT}
+        </motion.h2>
+        <motion.p className="gv-date-sub" style={{ opacity: subOp }}>
+          Monday · doors open at 11:00 AM
+        </motion.p>
+      </div>
+    </section>
+  );
+}
+
+/* ============== ACT 6: FINALE / INVITATION CARD ============== */
+
+function FinaleAct({ onShare }: { onShare: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const y = useTransform(scrollYProgress, [0, 0.5], [120, 0]);
+  const op = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
+
+  return (
+    <section ref={ref} className="gv-finale">
+      <motion.div className="gv-card" style={{ y, opacity: op }}>
+        <div className="gv-card-corner tl" />
+        <div className="gv-card-corner tr" />
+        <div className="gv-card-corner bl" />
+        <div className="gv-card-corner br" />
+
+        <div className="gv-card-mono">GV</div>
+        <div className="gv-card-eyebrow">— Grand Opening —</div>
+        <h2 className="gv-card-title">
+          <span className="gv-script-lg">You're invited</span>
+        </h2>
+        <div className="gv-card-rule" />
+        <div className="gv-card-meta">
+          <div>
+            <div className="gv-meta-k">DATE</div>
+            <div className="gv-meta-v">29 June 2026</div>
+          </div>
+          <div>
+            <div className="gv-meta-k">TIME</div>
+            <div className="gv-meta-v">11:00 AM</div>
+          </div>
+          <div>
+            <div className="gv-meta-k">DAY</div>
+            <div className="gv-meta-v">Monday</div>
+          </div>
+        </div>
+        <div className="gv-card-rule" />
+        <div className="gv-card-addr">
+          <div className="gv-addr-line strong">GiftValley · Shop No. 8</div>
+          <div className="gv-addr-line">Akash Ganga Building, Naya Nagar</div>
+        </div>
+
+        <div className="gv-card-actions">
+          <a
+            className="gv-btn primary"
+            href="https://maps.google.com/?q=Akash+Ganga+Building+Naya+Nagar"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Get Directions
+            <Arrow />
+          </a>
+          <button className="gv-btn ghost" onClick={onShare}>
+            Share Invite
+            <Arrow />
+          </button>
+        </div>
+        <div className="gv-card-foot">With warmest regards · The GiftValley Family</div>
+      </motion.div>
+    </section>
+  );
+}
+
+function Arrow() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+function FilmGrain() {
+  return <div className="gv-grain" aria-hidden />;
+}
+
+/* useMotionValueEvent kept imported in case future hooks need it */
+void useMotionValueEvent;
+
+/* ============== STYLES ============== */
+
+const INK = "#0E0B08";
+const PAPER = "#EDE6D6";
+const WAX = "#A8362A";
+const WAX_DEEP = "#6E2014";
+const SAGE = "#B6C29B";
+const SAGE_DEEP = "#7E9067";
+const GOLD = "#C9A24E";
+
+const FLORAL = (color: string) =>
+  "url(\"data:image/svg+xml;utf8," +
+  encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>
+       <g fill='none' stroke='${color}' stroke-width='0.6' opacity='0.45'>
+         <circle cx='100' cy='100' r='44'/>
+         <circle cx='100' cy='100' r='28'/>
+         <circle cx='100' cy='100' r='14'/>
+         <circle cx='100' cy='100' r='4' fill='${color}' opacity='0.6'/>
+         <path d='M100 20 Q112 56 100 80 Q88 56 100 20Z' fill='${color}' opacity='0.35'/>
+         <path d='M100 180 Q112 144 100 120 Q88 144 100 180Z' fill='${color}' opacity='0.35'/>
+         <path d='M20 100 Q56 112 80 100 Q56 88 20 100Z' fill='${color}' opacity='0.35'/>
+         <path d='M180 100 Q144 112 120 100 Q144 88 180 100Z' fill='${color}' opacity='0.35'/>
+         <path d='M44 44 Q74 74 90 90'/>
+         <path d='M156 44 Q126 74 110 90'/>
+         <path d='M44 156 Q74 126 90 110'/>
+         <path d='M156 156 Q126 126 110 110'/>
+       </g>
+     </svg>`
+  ) +
+  "\")";
 
 const CSS = `
-.gv-root {
-  position: fixed; inset: 0; overflow: hidden;
-  font-family: 'Cormorant Garamond', serif;
-  color: ${INK};
-  background: #1a1410;
+:root {
+  --ink: ${INK};
+  --paper: ${PAPER};
+  --wax: ${WAX};
+  --wax-deep: ${WAX_DEEP};
+  --sage: ${SAGE};
+  --sage-deep: ${SAGE_DEEP};
+  --gold: ${GOLD};
 }
-.gv-backdrop {
-  position: absolute; inset: 0;
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { background: ${INK}; }
+
+.gv {
+  background: ${INK};
+  color: ${PAPER};
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  cursor: none;
+}
+@media (max-width: 768px) { .gv { cursor: auto; } .gv-cursor { display: none; } }
+
+.gv-cursor {
+  position: fixed; top: 0; left: 0; width: 24px; height: 24px;
+  border-radius: 50%; pointer-events: none; z-index: 100;
+  border: 1px solid ${PAPER};
+  mix-blend-mode: difference;
+}
+
+.gv-nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 22px 32px;
+  font-family: 'Fraunces', serif;
+  pointer-events: none;
+}
+.gv-nav-mark {
+  font-weight: 700; letter-spacing: 0.2em;
+  font-size: 14px;
+  color: ${PAPER};
+}
+.gv-nav-meta {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(237,230,214,0.55);
+}
+.gv-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: ${WAX};
+  box-shadow: 0 0 10px ${WAX};
+  animation: gv-pulse 2s ease-in-out infinite;
+}
+@keyframes gv-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.gv-progress {
+  position: fixed; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, ${WAX}, ${GOLD});
+  transform-origin: 0%;
+  z-index: 60;
+}
+
+.gv-act-label {
+  position: absolute; top: 90px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: rgba(237,230,214,0.55);
+  z-index: 5;
+}
+.gv-act-label.dark { color: rgba(14,11,8,0.55); }
+.gv-line { display: inline-block; width: 40px; height: 1px; background: rgba(237,230,214,0.4); }
+.gv-line.dark { background: rgba(14,11,8,0.35); }
+
+/* ====== HERO ENVELOPE ====== */
+.gv-hero { position: relative; height: 400vh; background: ${INK}; }
+.gv-hero-sticky {
+  position: sticky; top: 0;
+  width: 100vw; height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 40%, #3a2a1f 0%, #1a110c 70%, #0a0604 100%);
+    radial-gradient(ellipse at 50% 50%, #1a130c 0%, #0b0805 70%, #050302 100%);
 }
-.gv-backdrop::after {
-  content: ""; position: absolute; inset: 0;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(255,200,140,0.06), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,180,120,0.05), transparent 40%);
-}
-
-/* ENVELOPE SCENE */
-.gv-scene {
+.gv-vignette {
   position: absolute; inset: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer;
-  perspective: 1400px;
-  padding: 20px;
-  animation: gv-scene-in 0.9s ease-out both;
+  background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,0.9) 100%);
+  pointer-events: none;
 }
-@keyframes gv-scene-in {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-.gv-root[data-stage="opening"] .gv-scene,
-.gv-root[data-stage="letter"]  .gv-scene { cursor: default; }
 
+.gv-grain {
+  position: absolute; inset: -50%;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  animation: gv-grain 0.4s steps(3) infinite;
+}
+@keyframes gv-grain {
+  0% { transform: translate(0,0); }
+  33% { transform: translate(-2%, 1%); }
+  66% { transform: translate(1%, -2%); }
+  100% { transform: translate(0,0); }
+}
+
+.gv-envelope-wrap {
+  perspective: 1800px;
+  filter: drop-shadow(0 50px 80px rgba(0,0,0,0.7));
+}
 .gv-envelope {
   position: relative;
-  width: min(380px, 86vw);
-  aspect-ratio: 3 / 4.2;
+  width: min(420px, 80vw);
+  aspect-ratio: 3 / 4.4;
   transform-style: preserve-3d;
-  filter: drop-shadow(0 30px 50px rgba(0,0,0,0.6));
 }
-
-.gv-env-body {
+.gv-env-back {
   position: absolute; inset: 0;
   background-color: ${SAGE};
-  background-image: ${FLORAL_BG};
-  background-size: 140px 140px;
-  border-radius: 6px;
+  background-image: ${FLORAL(SAGE_DEEP)};
+  background-size: 180px 180px;
+  border-radius: 4px;
   box-shadow:
-    inset 0 0 0 1px rgba(60,80,40,0.25),
-    inset 0 0 60px rgba(80,100,60,0.25);
+    inset 0 0 0 1px rgba(50,70,30,0.3),
+    inset 0 0 80px rgba(50,70,30,0.25);
 }
-
-/* Letter sits inside the envelope */
 .gv-letter {
   position: absolute;
-  left: 4%; right: 4%; top: 6%; bottom: 6%;
+  left: 5%; right: 5%; top: 7%; bottom: 7%;
   background: ${PAPER};
   background-image:
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4), transparent 70%),
-    ${FLORAL_BG};
-  background-size: auto, 110px 110px;
+    radial-gradient(circle at 50% 40%, rgba(255,255,255,0.4), transparent 70%),
+    ${FLORAL(SAGE_DEEP)};
+  background-size: auto, 130px 130px;
   background-blend-mode: overlay, normal;
-  border-radius: 3px;
-  box-shadow:
-    inset 0 0 0 1px rgba(120,90,40,0.2),
-    0 6px 18px rgba(0,0,0,0.4);
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(100,80,40,0.2);
   z-index: 2;
-  transform: translateY(0);
-  transition: transform 1.4s cubic-bezier(0.22,1,0.36,1) 0.7s;
   display: flex; align-items: center; justify-content: center;
-  padding: 18px;
+  padding: 24px;
   text-align: center;
-}
-.gv-root[data-stage="letter"] .gv-letter {
-  transform: translateY(-46%);
-}
-.gv-letter-inner {
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.8s ease 1.6s, transform 0.8s ease 1.6s;
-}
-.gv-root[data-stage="letter"] .gv-letter-inner {
-  opacity: 1; transform: translateY(0);
-}
-.gv-monogram {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: ${WAX};
-  font-size: 14px;
-  margin-bottom: 14px;
-  opacity: 0.85;
-}
-.gv-you-are {
-  font-family: 'Great Vibes', cursive;
-  font-weight: 400;
   color: ${INK};
-  font-size: clamp(2.4rem, 9vw, 3.6rem);
-  margin: 0;
-  line-height: 1;
-  letter-spacing: 0.01em;
 }
-.gv-flourish { margin: 10px 0 12px; opacity: 0.85; }
+.gv-letter-content { width: 100%; }
+.gv-letter-mono {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  letter-spacing: 0.35em; color: ${WAX}; font-size: 13px;
+  margin-bottom: 18px;
+}
+.gv-script {
+  font-family: 'Great Vibes', cursive; font-weight: 400;
+  font-size: clamp(2.6rem, 9vw, 3.8rem);
+  margin: 0; line-height: 1; color: ${INK};
+}
+.gv-hairline {
+  width: 60%; height: 1px; margin: 14px auto;
+  background: linear-gradient(90deg, transparent, ${WAX}, transparent);
+}
 .gv-letter-sub {
-  font-style: italic;
-  color: rgba(58,36,24,0.7);
+  font-family: 'Fraunces', serif; font-style: italic;
+  color: rgba(14,11,8,0.65); margin: 0 0 4px;
   font-size: clamp(0.85rem, 2.6vw, 1rem);
-  margin: 0 0 4px;
-  letter-spacing: 0.04em;
 }
-.gv-letter-name {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  color: ${WAX_DARK};
-  font-size: clamp(1.2rem, 4.5vw, 1.6rem);
+.gv-letter-brand {
+  font-family: 'Fraunces', serif; font-weight: 700;
   letter-spacing: 0.18em;
+  color: ${WAX_DEEP};
+  font-size: clamp(1.1rem, 4vw, 1.4rem);
   margin: 0;
 }
-
-/* Envelope front (bottom V) */
 .gv-env-front {
   position: absolute; inset: 0;
   background-color: ${SAGE_DEEP};
-  background-image: ${FLORAL_BG};
-  background-size: 140px 140px;
-  clip-path: polygon(0 35%, 100% 35%, 100% 100%, 0 100%);
-  border-radius: 6px;
+  background-image: ${FLORAL(INK)};
+  background-size: 180px 180px;
+  clip-path: polygon(0 38%, 100% 38%, 100% 100%, 0 100%);
+  border-radius: 4px;
   z-index: 3;
-  box-shadow: inset 0 6px 14px rgba(0,0,0,0.18);
+  box-shadow: inset 0 8px 18px rgba(0,0,0,0.3);
 }
-.gv-env-front::before {
-  content: ""; position: absolute; left: 0; right: 0; top: 35%;
-  height: 1px; background: rgba(60,80,40,0.35);
-}
-
-/* Top flap */
 .gv-env-flap {
   position: absolute; left: 0; right: 0; top: 0;
   height: 62%;
   transform-origin: 50% 0%;
   transform-style: preserve-3d;
   z-index: 4;
-  transition: transform 1.2s cubic-bezier(0.6, 0, 0.4, 1);
 }
 .gv-env-flap-inner {
   position: absolute; inset: 0;
   background-color: ${SAGE_DEEP};
-  background-image: ${FLORAL_BG};
-  background-size: 140px 140px;
+  background-image: ${FLORAL(INK)};
+  background-size: 180px 180px;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  border-radius: 6px;
-  box-shadow: inset 0 -8px 18px rgba(0,0,0,0.25);
-}
-.gv-root[data-stage="opening"] .gv-env-flap,
-.gv-root[data-stage="letter"]  .gv-env-flap {
-  transform: rotateX(-178deg) translateY(-2px);
-  z-index: 1;
+  border-radius: 4px;
+  box-shadow: inset 0 -10px 18px rgba(0,0,0,0.3);
+  backface-visibility: hidden;
 }
 
-/* Wax seal */
 .gv-seal {
   position: absolute;
   left: 50%; top: 38%;
-  width: 100px; height: 100px;
+  width: 110px; height: 110px;
   transform: translate(-50%, -50%);
-  z-index: 6;
-  pointer-events: none;
+  z-index: 6; pointer-events: none;
+  display: flex;
 }
 .gv-seal-half {
-  position: absolute; top: 0;
-  width: 50px; height: 100px;
+  position: relative;
+  width: 55px; height: 110px;
   overflow: hidden;
-  transition: transform 0.6s cubic-bezier(0.5,0,0.4,1), opacity 0.6s ease 0.4s;
+  font-family: 'Fraunces', serif;
+  font-weight: 900; font-size: 38px;
+  display: flex; align-items: center;
+  color: rgba(40,8,4,0.55);
 }
-.gv-seal-left  { left: 0; }
-.gv-seal-right { left: 50px; }
 .gv-seal-half::before {
-  content: "";
-  position: absolute; top: 0;
-  width: 100px; height: 100px;
+  content: ""; position: absolute; top: 0;
+  width: 110px; height: 110px;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 35% 30%, #d44a36, ${WAX} 45%, ${WAX_DARK} 100%);
+    radial-gradient(circle at 35% 30%, #d24a36 0%, ${WAX} 45%, ${WAX_DEEP} 100%);
   box-shadow:
-    inset -6px -8px 12px rgba(0,0,0,0.4),
-    inset 4px 4px 8px rgba(255,255,255,0.18),
-    0 6px 14px rgba(0,0,0,0.45);
+    inset -8px -10px 16px rgba(0,0,0,0.4),
+    inset 6px 6px 10px rgba(255,255,255,0.2),
+    0 8px 18px rgba(0,0,0,0.5);
 }
-.gv-seal-left::before  { left: 0; }
-.gv-seal-right::before { left: -50px; }
-/* drip edges */
 .gv-seal-half::after {
-  content: "";
-  position: absolute; inset: 0;
+  content: ""; position: absolute; top: 0;
+  width: 110px; height: 110px;
   background:
-    radial-gradient(circle at 50% 50%, transparent 44px, rgba(168,54,42,0.6) 46px, transparent 50px);
+    radial-gradient(circle at 50% 50%, transparent 48px, rgba(168,54,42,0.5) 52px, transparent 56px);
 }
-.gv-seal-mark {
-  position: absolute;
-  top: 50%;
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  font-size: 34px;
-  color: rgba(40,10,5,0.55);
-  text-shadow: 0 1px 0 rgba(255,255,255,0.15);
-  transform: translateY(-50%);
-  z-index: 2;
-}
-.gv-seal-left  .gv-seal-mark { right: -4px; }
-.gv-seal-right .gv-seal-mark { left: -4px; }
+.gv-seal-l::before { left: 0; }
+.gv-seal-r::before { left: -55px; }
+.gv-seal-l { justify-content: flex-end; padding-right: 4px; }
+.gv-seal-r { justify-content: flex-start; padding-left: 4px; }
+.gv-seal-half span { position: relative; z-index: 2; }
 
-.gv-root[data-stage="opening"] .gv-seal-left,
-.gv-root[data-stage="letter"]  .gv-seal-left {
-  transform: translateX(-40px) rotate(-22deg);
-  opacity: 0;
+.gv-scroll-hint {
+  position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(237,230,214,0.5);
 }
-.gv-root[data-stage="opening"] .gv-seal-right,
-.gv-root[data-stage="letter"]  .gv-seal-right {
-  transform: translateX(40px) rotate(22deg);
-  opacity: 0;
+.gv-scroll-arrow {
+  width: 1px; height: 40px;
+  background: linear-gradient(180deg, transparent, ${PAPER});
+  animation: gv-arrow 1.6s ease-in-out infinite;
 }
-
-/* Tap hint */
-.gv-tap-hint {
-  margin-top: 32px;
-  display: flex; align-items: center; gap: 10px;
-  color: rgba(245,230,200,0.7);
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
-  animation: gv-hint-pulse 2.2s ease-in-out infinite;
-}
-.gv-root[data-stage="opening"] .gv-tap-hint,
-.gv-root[data-stage="letter"]  .gv-tap-hint { opacity: 0; transition: opacity 0.4s ease; }
-.gv-tap-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: ${WAX};
-  box-shadow: 0 0 12px ${WAX};
-}
-@keyframes gv-hint-pulse {
-  0%, 100% { opacity: 0.6; }
-  50%      { opacity: 1; }
+@keyframes gv-arrow {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
 }
 
-/* DETAILS PAGE */
-.gv-details {
-  position: absolute; inset: 0;
-  overflow-y: auto;
-  display: flex; align-items: flex-start; justify-content: center;
-  padding: 24px 16px 40px;
-  animation: gv-details-in 0.9s cubic-bezier(0.22,1,0.36,1) both;
-}
-@keyframes gv-details-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.gv-paper {
-  width: min(520px, 100%);
-  background: ${PAPER};
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4), transparent 70%),
-    ${FLORAL_BG};
-  background-size: auto, 130px 130px;
-  background-blend-mode: overlay, normal;
-  border-radius: 4px;
-  box-shadow:
-    0 30px 80px rgba(0,0,0,0.55),
-    inset 0 0 0 1px rgba(120,90,40,0.18);
-  padding: 36px 28px 32px;
-  text-align: center;
+/* ====== ACT 2 MARQUEE ====== */
+.gv-marquee {
   position: relative;
+  padding: 25vh 0 22vh;
+  background: ${INK};
+  overflow: hidden;
 }
-.gv-paper::before, .gv-paper::after {
-  content: ""; position: absolute; left: 12px; right: 12px;
-  height: 1px; background: rgba(58,36,24,0.18);
+.gv-marquee-row {
+  display: flex; align-items: center; gap: 60px;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(4rem, 14vw, 11rem);
+  font-weight: 500;
+  line-height: 0.9;
+  white-space: nowrap;
+  color: ${PAPER};
 }
-.gv-paper::before { top: 12px; }
-.gv-paper::after  { bottom: 12px; }
-.gv-paper-inner { position: relative; }
-
-.gv-mono-small {
-  font-family: 'Cinzel', serif;
-  font-weight: 700;
-  letter-spacing: 0.3em;
+.gv-marquee-word.italic { font-style: italic; font-weight: 400; color: ${GOLD}; }
+.gv-marquee-amp {
+  font-family: 'Italiana', serif;
+  font-size: 0.5em;
   color: ${WAX};
-  font-size: 13px;
-  margin-bottom: 18px;
+  opacity: 0.7;
 }
-.gv-eyebrow {
-  font-style: italic;
-  color: rgba(58,36,24,0.65);
-  font-size: clamp(0.78rem, 2.4vw, 0.92rem);
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
+.gv-marquee-sub {
+  margin-top: 60px;
+  text-align: center;
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+  color: rgba(237,230,214,0.55);
+  max-width: 720px; margin-left: auto; margin-right: auto;
+  padding: 0 20px;
 }
-.gv-grand {
-  font-family: 'Great Vibes', cursive;
-  font-weight: 400;
-  font-size: clamp(2.8rem, 11vw, 4.4rem);
-  color: ${INK};
-  margin: 0 0 6px;
-  line-height: 1;
+
+/* ====== ACT 3 NAME ====== */
+.gv-name-act {
+  position: relative;
+  height: 250vh;
+  background: ${INK};
 }
-.gv-rule {
-  width: 60%; height: 1px;
-  margin: 12px auto;
-  background: linear-gradient(90deg, transparent, ${WAX}, transparent);
+.gv-name-sticky {
+  position: sticky; top: 0;
+  height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at center, #1a120a 0%, ${INK} 70%);
 }
-.gv-brand {
-  font-family: 'Cinzel', serif;
+.gv-name-eye {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: rgba(237,230,214,0.5);
+  margin-bottom: 32px;
+}
+.gv-name {
+  font-family: 'Fraunces', serif;
   font-weight: 700;
-  color: ${WAX_DARK};
-  letter-spacing: 0.22em;
-  font-size: clamp(1.3rem, 5vw, 1.7rem);
+  font-size: clamp(2.5rem, 11vw, 9rem);
+  line-height: 1;
+  color: ${PAPER};
+  margin: 0;
+  display: flex;
+  background: linear-gradient(180deg, ${PAPER} 0%, ${GOLD} 100%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.gv-name-letter { display: inline-block; }
+.gv-name-tag {
+  margin-top: 28px;
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: clamp(0.95rem, 2.6vw, 1.2rem);
+  color: rgba(237,230,214,0.6);
+  letter-spacing: 0.05em;
+}
+
+/* ====== ACT 4 CATEGORIES ====== */
+.gv-cats {
+  position: relative;
+  height: 350vh;
+  background: ${PAPER};
+  color: ${INK};
+}
+.gv-cats-sticky {
+  position: sticky; top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  background:
+    linear-gradient(180deg, ${PAPER} 0%, #e3dac7 100%);
+}
+.gv-cats-title {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 90px 32px 0;
+  text-align: center;
+  pointer-events: none;
+}
+.gv-cats-title h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 6vw, 4rem);
+  margin: 60px 0 0;
+  color: ${INK};
+  line-height: 1.05;
+}
+.gv-cats-title em { font-style: italic; color: ${WAX_DEEP}; font-weight: 400; }
+.gv-cats-track {
+  display: flex; align-items: center; gap: 32px;
+  padding: 0 8vw;
+  will-change: transform;
+}
+.gv-cat {
+  flex: 0 0 380px;
+  height: 60vh; max-height: 540px;
+  background: ${PAPER};
+  border: 1px solid rgba(14,11,8,0.12);
+  padding: 36px 28px;
+  display: flex; flex-direction: column;
+  position: relative;
+  color: ${INK};
+  box-shadow: 0 30px 60px -30px rgba(0,0,0,0.2);
+}
+.gv-cat::before {
+  content: ""; position: absolute; inset: 8px;
+  border: 1px solid rgba(14,11,8,0.08);
+  pointer-events: none;
+}
+.gv-cat-tag {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 0.25em;
+  color: ${WAX};
+}
+.gv-cat-icon {
+  margin: 28px 0;
+  color: ${INK};
+  display: flex; justify-content: center;
+  flex: 1; align-items: center;
+}
+.gv-cat-icon svg { width: 72px; height: 72px; stroke-width: 1; }
+.gv-cat-name {
+  font-family: 'Fraunces', serif; font-weight: 500;
+  font-size: 32px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.gv-cat-rule {
+  height: 1px; width: 40px; background: ${WAX};
+  margin: 14px 0;
+}
+.gv-cat-desc {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 15px; line-height: 1.5;
+  color: rgba(14,11,8,0.65);
   margin: 0;
 }
-.gv-tagline {
-  font-style: italic;
-  color: rgba(58,36,24,0.7);
-  font-size: clamp(0.85rem, 2.6vw, 1rem);
-  margin: 6px 0 18px;
+@media (max-width: 600px) {
+  .gv-cat { flex: 0 0 78vw; height: 64vh; padding: 28px 22px; }
+  .gv-cats-track { gap: 20px; }
 }
 
-.gv-date {
-  font-family: 'Cinzel', serif;
-  font-weight: 500;
-  font-size: clamp(1.1rem, 4.2vw, 1.4rem);
+/* ====== ACT 5 DATE ====== */
+.gv-date-act {
+  position: relative;
+  height: 200vh;
+  background: ${INK};
+}
+.gv-date-sticky {
+  position: sticky; top: 0;
+  height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at center, rgba(168,54,42,0.18) 0%, ${INK} 60%);
+}
+.gv-date-kicker {
+  display: flex; align-items: center; gap: 18px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.4em; text-transform: uppercase;
+  color: ${GOLD};
+  margin-bottom: 40px;
+}
+.gv-hairline-h { width: 60px; height: 1px; background: ${GOLD}; opacity: 0.6; }
+.gv-date-big {
+  font-family: 'Italiana', serif;
+  font-weight: 400;
+  font-size: clamp(2.6rem, 11vw, 9rem);
+  line-height: 1;
+  margin: 0;
+  color: ${PAPER};
+  letter-spacing: 0.05em;
+}
+.gv-date-sub {
+  margin-top: 32px;
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: clamp(0.95rem, 2.6vw, 1.2rem);
+  color: rgba(237,230,214,0.65);
+}
+
+/* ====== ACT 6 FINALE CARD ====== */
+.gv-finale {
+  min-height: 110vh;
+  background: linear-gradient(180deg, ${INK} 0%, #1a120a 100%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 80px 20px;
+  position: relative;
+}
+.gv-card {
+  position: relative;
+  width: min(540px, 100%);
+  background: ${PAPER};
+  background-image:
+    radial-gradient(circle at 50% 30%, rgba(255,255,255,0.5), transparent 70%),
+    ${FLORAL(SAGE_DEEP)};
+  background-size: auto, 160px 160px;
+  background-blend-mode: overlay, normal;
+  padding: 48px 36px 36px;
   color: ${INK};
-  letter-spacing: 0.1em;
+  text-align: center;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6);
 }
-.gv-time {
-  color: rgba(58,36,24,0.7);
-  font-size: clamp(0.85rem, 2.6vw, 1rem);
-  margin-top: 2px;
+.gv-card-corner {
+  position: absolute; width: 18px; height: 18px;
+  border: 1px solid ${WAX};
 }
-
-.gv-addr { margin: 16px 0 22px; line-height: 1.5; }
-.gv-addr-1 {
-  font-weight: 600;
-  color: ${INK};
-  font-size: clamp(0.95rem, 2.8vw, 1.05rem);
+.gv-card-corner.tl { top: 14px; left: 14px; border-right: 0; border-bottom: 0; }
+.gv-card-corner.tr { top: 14px; right: 14px; border-left: 0; border-bottom: 0; }
+.gv-card-corner.bl { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
+.gv-card-corner.br { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
+.gv-card-mono {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  letter-spacing: 0.3em; color: ${WAX}; font-size: 13px;
 }
-.gv-addr-2 {
-  color: rgba(58,36,24,0.75);
-  font-size: clamp(0.85rem, 2.6vw, 0.95rem);
-  font-style: italic;
-}
-
-.gv-cats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px 6px;
-  margin: 8px 0 22px;
-  padding: 14px 4px;
-  border-top: 1px dashed rgba(58,36,24,0.25);
-  border-bottom: 1px dashed rgba(58,36,24,0.25);
-}
-.gv-cat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.gv-cat-icon svg { width: 28px; height: 28px; }
-.gv-cat-label {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(58,36,24,0.75);
-}
-@media (max-width: 380px) {
-  .gv-cats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-
-.gv-actions {
-  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+.gv-card-eyebrow {
   margin-top: 8px;
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 13px; letter-spacing: 0.1em;
+  color: rgba(14,11,8,0.55);
+}
+.gv-card-title { margin: 6px 0 0; }
+.gv-script-lg {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2.8rem, 10vw, 4.4rem);
+  font-weight: 400;
+  color: ${INK};
+  line-height: 1;
+}
+.gv-card-rule {
+  height: 1px; margin: 22px auto;
+  width: 80%;
+  background: linear-gradient(90deg, transparent, ${WAX}, transparent);
+}
+.gv-card-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 4px 0;
+}
+.gv-meta-k {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: ${WAX}; opacity: 0.8;
+  margin-bottom: 6px;
+}
+.gv-meta-v {
+  font-family: 'Fraunces', serif; font-weight: 500;
+  font-size: clamp(1rem, 3vw, 1.15rem);
+  color: ${INK};
+}
+.gv-card-addr { margin: 4px 0 4px; }
+.gv-addr-line {
+  font-family: 'Fraunces', serif;
+  font-size: 14px;
+  color: rgba(14,11,8,0.75);
+  line-height: 1.6;
+}
+.gv-addr-line.strong { font-weight: 600; color: ${INK}; font-size: 15px; }
+.gv-card-actions {
+  display: flex; gap: 10px; justify-content: center;
+  margin-top: 24px; flex-wrap: wrap;
 }
 .gv-btn {
-  font-family: 'Cinzel', serif;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-  padding: 12px 22px;
-  border-radius: 2px;
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 14px 24px;
+  border-radius: 0;
   cursor: pointer;
   text-decoration: none;
-  border: 1px solid ${WAX_DARK};
-  transition: transform 0.2s ease, background 0.2s ease;
+  border: 1px solid ${WAX_DEEP};
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 .gv-btn:hover { transform: translateY(-1px); }
-.gv-btn-primary { background: ${WAX}; color: ${PAPER}; }
-.gv-btn-primary:hover { background: ${WAX_DARK}; }
-.gv-btn-ghost { background: transparent; color: ${WAX_DARK}; }
-.gv-btn-ghost:hover { background: rgba(168,54,42,0.08); }
-
-.gv-foot {
+.gv-btn.primary { background: ${WAX}; color: ${PAPER}; }
+.gv-btn.primary:hover { background: ${WAX_DEEP}; }
+.gv-btn.ghost { background: transparent; color: ${WAX_DEEP}; }
+.gv-btn.ghost:hover { background: rgba(168,54,42,0.08); }
+.gv-card-foot {
   margin-top: 22px;
-  font-style: italic;
-  color: rgba(58,36,24,0.55);
-  font-size: 0.85rem;
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 12px;
+  color: rgba(14,11,8,0.5);
 }
 
-/* Toast */
+/* footer */
+.gv-footer {
+  padding: 40px 24px;
+  background: ${INK};
+  border-top: 1px solid rgba(237,230,214,0.08);
+}
+.gv-footer-row {
+  display: flex; justify-content: space-between; align-items: center;
+  max-width: 1200px; margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: rgba(237,230,214,0.45);
+  gap: 16px; flex-wrap: wrap;
+}
+.gv-mark {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  color: ${PAPER};
+}
+
 .gv-toast {
   position: fixed; left: 50%; bottom: 30px;
   transform: translate(-50%, 80px);
-  background: rgba(20,12,8,0.95);
-  color: ${PAPER};
-  padding: 10px 18px; border-radius: 100px;
-  font-size: 0.85rem;
-  font-family: 'Cormorant Garamond', serif;
-  border: 1px solid rgba(255,255,255,0.1);
-  opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease;
-  z-index: 50;
+  background: ${PAPER}; color: ${INK};
+  padding: 12px 22px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  z-index: 200;
 }
-.gv-toast-show { transform: translate(-50%, 0); opacity: 1; }
+.gv-toast.show { transform: translate(-50%, 0); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
-  .gv-env-flap, .gv-letter, .gv-seal-half, .gv-letter-inner,
-  .gv-scene, .gv-details { transition: none !important; animation: none !important; }
+  .gv-grain, .gv-scroll-arrow, .gv-dot { animation: none !important; }
 }
 `;
