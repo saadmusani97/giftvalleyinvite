@@ -576,12 +576,13 @@ const CSS = `
 html, body { margin: 0; padding: 0; }
 body { background: ${INK}; }
 
+html, body { overflow-x: clip; }
 .gv {
   background: ${INK};
   color: ${PAPER};
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
   cursor: none;
 }
 @media (max-width: 768px) { .gv { cursor: auto; } .gv-cursor { display: none; } }
