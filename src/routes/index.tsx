@@ -1080,7 +1080,7 @@ html, body { overflow-x: clip; }
   z-index: 3;
 }
 .gv-card-eyebrow {
-  margin-top: 8px;
+  margin-top: 28px;
   font-family: 'Fraunces', serif; font-style: italic;
   font-size: 13px; letter-spacing: 0.1em;
   color: rgba(14,11,8,0.55);
