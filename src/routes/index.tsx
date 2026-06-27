@@ -975,9 +975,15 @@ body { background: ${INK}; }
   color: rgba(14,11,8,0.65);
   margin: 0;
 }
-@media (max-width: 600px) {
-  .gv-cat { flex: 0 0 78vw; height: 64vh; padding: 28px 22px; }
-  .gv-cats-track { gap: 20px; }
+.gv-cats-end { flex: 0 0 8vw; }
+@media (max-width: 768px) {
+  .gv-cat { flex: 0 0 82vw; height: auto; min-height: 460px; max-height: none; padding: 26px 22px; }
+  .gv-cats-track { gap: 16px; padding: 0 9vw; }
+  .gv-cats-title { padding: 80px 20px 0; }
+  .gv-cats-title h3 { margin-top: 20px; font-size: clamp(1.6rem, 7vw, 2.2rem); }
+  .gv-cats { height: 500vh; }
+  .gv-cat-name { font-size: 26px; }
+  .gv-cat-icon svg { width: 56px; height: 56px; }
 }
 
 /* ====== ACT 5 DATE ====== */
