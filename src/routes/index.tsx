@@ -261,13 +261,25 @@ function HeroOpening({ reduce }: { reduce: boolean }) {
 
 function InvitedAct() {
   const ref = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["20%", "-60%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const [dist, setDist] = useState(0);
+  useEffect(() => {
+    const m = () => {
+      const r = rowRef.current;
+      if (!r) return;
+      setDist(Math.max(0, r.scrollWidth - window.innerWidth + 40));
+    };
+    m();
+    window.addEventListener("resize", m);
+    return () => window.removeEventListener("resize", m);
+  }, []);
+  const x = useTransform(scrollYProgress, [0, 1], [80, -dist]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
 
   return (
     <section ref={ref} className="gv-marquee">
-      <motion.div className="gv-marquee-row" style={{ x, opacity }}>
+      <motion.div ref={rowRef} className="gv-marquee-row" style={{ x, opacity }}>
         <span className="gv-marquee-word">cordially</span>
         <span className="gv-marquee-amp">&</span>
         <span className="gv-marquee-word italic">warmly</span>
@@ -349,9 +361,24 @@ function Letter({
 
 function CategoryAct() {
   const ref = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-72%"]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.1, 0.2], [1, 1, 0]);
+  const [distance, setDistance] = useState(0);
+
+  useEffect(() => {
+    const measure = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const d = Math.max(0, track.scrollWidth - window.innerWidth);
+      setDistance(d);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const x = useTransform(scrollYProgress, [0.05, 0.95], [0, -distance]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 1, 0]);
 
   return (
     <section ref={ref} className="gv-cats">
@@ -365,7 +392,7 @@ function CategoryAct() {
             Seven worlds <em>under one roof.</em>
           </h3>
         </motion.div>
-        <motion.div className="gv-cats-track" style={{ x }}>
+        <motion.div ref={trackRef} className="gv-cats-track" style={{ x }}>
           {CATEGORIES.map((c, i) => (
             <article key={c.name} className="gv-cat" data-i={i}>
               <div className="gv-cat-tag">{c.tag}</div>
@@ -375,6 +402,7 @@ function CategoryAct() {
               <p className="gv-cat-desc">{CAT_DESC[c.name]}</p>
             </article>
           ))}
+          <div className="gv-cats-end" />
         </motion.div>
       </div>
     </section>
@@ -947,9 +975,15 @@ body { background: ${INK}; }
   color: rgba(14,11,8,0.65);
   margin: 0;
 }
-@media (max-width: 600px) {
-  .gv-cat { flex: 0 0 78vw; height: 64vh; padding: 28px 22px; }
-  .gv-cats-track { gap: 20px; }
+.gv-cats-end { flex: 0 0 8vw; }
+@media (max-width: 768px) {
+  .gv-cat { flex: 0 0 82vw; height: auto; min-height: 460px; max-height: none; padding: 26px 22px; }
+  .gv-cats-track { gap: 16px; padding: 0 9vw; }
+  .gv-cats-title { padding: 80px 20px 0; }
+  .gv-cats-title h3 { margin-top: 20px; font-size: clamp(1.6rem, 7vw, 2.2rem); }
+  .gv-cats { height: 500vh; }
+  .gv-cat-name { font-size: 26px; }
+  .gv-cat-icon svg { width: 56px; height: 56px; }
 }
 
 /* ====== ACT 5 DATE ====== */
@@ -1128,5 +1162,52 @@ body { background: ${INK}; }
 
 @media (prefers-reduced-motion: reduce) {
   .gv-grain, .gv-scroll-arrow, .gv-dot { animation: none !important; }
+}
+
+@media (max-width: 768px) {
+  .gv-nav { padding: 14px 18px; }
+  .gv-nav-mark { font-size: 12px; }
+  .gv-nav-meta { font-size: 9px; letter-spacing: 0.16em; gap: 6px; }
+  .gv-act-label { top: 56px; font-size: 9px; letter-spacing: 0.22em; gap: 10px; }
+  .gv-line, .gv-line.dark { width: 24px; }
+
+  .gv-hero { height: 320vh; }
+  .gv-envelope { width: 78vw; }
+  .gv-letter { padding: 18px 16px; }
+  .gv-seal { width: 92px; height: 92px; top: 38%; }
+  .gv-seal-half { width: 46px; height: 92px; font-size: 32px; }
+  .gv-seal-half::before, .gv-seal-half::after { width: 92px; height: 92px; }
+  .gv-seal-r::before { left: -46px; }
+  .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
+  .gv-scroll-arrow { height: 28px; }
+
+  .gv-marquee { padding: 18vh 0 16vh; height: 220vh; position: relative; }
+  .gv-marquee-row { gap: 36px; font-size: clamp(3.4rem, 18vw, 6rem); }
+  .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
+
+  .gv-name-act { height: 200vh; }
+  .gv-name { font-size: clamp(2.2rem, 14vw, 4rem); }
+  .gv-name-eye { font-size: 10px; letter-spacing: 0.32em; margin-bottom: 22px; }
+  .gv-name-tag { margin-top: 22px; font-size: 1rem; padding: 0 24px; }
+
+  .gv-date-act { height: 170vh; }
+  .gv-date-big { font-size: clamp(2.4rem, 14vw, 5rem); }
+  .gv-date-kicker { font-size: 10px; letter-spacing: 0.32em; gap: 12px; margin-bottom: 28px; }
+  .gv-hairline-h { width: 36px; }
+  .gv-date-sub { margin-top: 22px; font-size: 0.95rem; padding: 0 24px; }
+
+  .gv-finale { padding: 60px 16px; }
+  .gv-card { padding: 38px 22px 28px; }
+  .gv-card-meta { gap: 8px; }
+  .gv-meta-k { font-size: 9px; letter-spacing: 0.18em; }
+  .gv-card-actions { gap: 8px; flex-direction: column; }
+  .gv-btn { width: 100%; justify-content: center; padding: 14px 18px; }
+  .gv-footer-row { flex-direction: column; gap: 8px; text-align: center; font-size: 10px; }
+}
+
+@media (max-width: 380px) {
+  .gv-envelope { width: 84vw; }
+  .gv-marquee-row { font-size: clamp(2.8rem, 16vw, 5rem); gap: 24px; }
+  .gv-card { padding: 32px 18px 24px; }
 }
 `;
