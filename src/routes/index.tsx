@@ -261,13 +261,25 @@ function HeroOpening({ reduce }: { reduce: boolean }) {
 
 function InvitedAct() {
   const ref = useRef<HTMLDivElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["20%", "-60%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
+  const [dist, setDist] = useState(0);
+  useEffect(() => {
+    const m = () => {
+      const r = rowRef.current;
+      if (!r) return;
+      setDist(Math.max(0, r.scrollWidth - window.innerWidth + 40));
+    };
+    m();
+    window.addEventListener("resize", m);
+    return () => window.removeEventListener("resize", m);
+  }, []);
+  const x = useTransform(scrollYProgress, [0, 1], [80, -dist]);
+  const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
 
   return (
     <section ref={ref} className="gv-marquee">
-      <motion.div className="gv-marquee-row" style={{ x, opacity }}>
+      <motion.div ref={rowRef} className="gv-marquee-row" style={{ x, opacity }}>
         <span className="gv-marquee-word">cordially</span>
         <span className="gv-marquee-amp">&</span>
         <span className="gv-marquee-word italic">warmly</span>
