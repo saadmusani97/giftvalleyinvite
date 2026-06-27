@@ -1056,8 +1056,28 @@ html, body { overflow-x: clip; }
 .gv-card-corner.bl { bottom: 14px; left: 14px; border-right: 0; border-top: 0; }
 .gv-card-corner.br { bottom: 14px; right: 14px; border-left: 0; border-top: 0; }
 .gv-card-mono {
-  font-family: 'Fraunces', serif; font-weight: 700;
-  letter-spacing: 0.3em; color: ${WAX}; font-size: 13px;
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.05em;
+  color: #f5e6cf;
+  background:
+    radial-gradient(circle at 35% 30%, #d24a36 0%, ${WAX} 50%, ${WAX_DEEP} 100%);
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.45),
+    inset 0 0 0 2px rgba(255,255,255,0.18),
+    inset 0 -6px 12px rgba(0,0,0,0.35);
+  z-index: 3;
 }
 .gv-card-eyebrow {
   margin-top: 8px;
