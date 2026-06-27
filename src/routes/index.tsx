@@ -1163,4 +1163,51 @@ body { background: ${INK}; }
 @media (prefers-reduced-motion: reduce) {
   .gv-grain, .gv-scroll-arrow, .gv-dot { animation: none !important; }
 }
+
+@media (max-width: 768px) {
+  .gv-nav { padding: 14px 18px; }
+  .gv-nav-mark { font-size: 12px; }
+  .gv-nav-meta { font-size: 9px; letter-spacing: 0.16em; gap: 6px; }
+  .gv-act-label { top: 56px; font-size: 9px; letter-spacing: 0.22em; gap: 10px; }
+  .gv-line, .gv-line.dark { width: 24px; }
+
+  .gv-hero { height: 320vh; }
+  .gv-envelope { width: 78vw; }
+  .gv-letter { padding: 18px 16px; }
+  .gv-seal { width: 92px; height: 92px; top: 38%; }
+  .gv-seal-half { width: 46px; height: 92px; font-size: 32px; }
+  .gv-seal-half::before, .gv-seal-half::after { width: 92px; height: 92px; }
+  .gv-seal-r::before { left: -46px; }
+  .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
+  .gv-scroll-arrow { height: 28px; }
+
+  .gv-marquee { padding: 18vh 0 16vh; height: 220vh; position: relative; }
+  .gv-marquee-row { gap: 36px; font-size: clamp(3.4rem, 18vw, 6rem); }
+  .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
+
+  .gv-name-act { height: 200vh; }
+  .gv-name { font-size: clamp(2.2rem, 14vw, 4rem); }
+  .gv-name-eye { font-size: 10px; letter-spacing: 0.32em; margin-bottom: 22px; }
+  .gv-name-tag { margin-top: 22px; font-size: 1rem; padding: 0 24px; }
+
+  .gv-date-act { height: 170vh; }
+  .gv-date-big { font-size: clamp(2.4rem, 14vw, 5rem); }
+  .gv-date-kicker { font-size: 10px; letter-spacing: 0.32em; gap: 12px; margin-bottom: 28px; }
+  .gv-hairline-h { width: 36px; }
+  .gv-date-sub { margin-top: 22px; font-size: 0.95rem; padding: 0 24px; }
+
+  .gv-finale { padding: 60px 16px; }
+  .gv-card { padding: 38px 22px 28px; }
+  .gv-card-meta { gap: 8px; }
+  .gv-meta-k { font-size: 9px; letter-spacing: 0.18em; }
+  .gv-card-actions { gap: 8px; flex-direction: column; }
+  .gv-btn { width: 100%; justify-content: center; padding: 14px 18px; }
+  .gv-footer-row { flex-direction: column; gap: 8px; text-align: center; font-size: 10px; }
+}
+
+@media (max-width: 380px) {
+  .gv-envelope { width: 84vw; }
+  .gv-marquee-row { font-size: clamp(2.8rem, 16vw, 5rem); gap: 24px; }
+  .gv-card { padding: 32px 18px 24px; }
+}
 `;
