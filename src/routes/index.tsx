@@ -349,9 +349,24 @@ function Letter({
 
 function CategoryAct() {
   const ref = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-72%"]);
-  const titleOpacity = useTransform(scrollYProgress, [0, 0.1, 0.2], [1, 1, 0]);
+  const [distance, setDistance] = useState(0);
+
+  useEffect(() => {
+    const measure = () => {
+      const track = trackRef.current;
+      if (!track) return;
+      const d = Math.max(0, track.scrollWidth - window.innerWidth);
+      setDistance(d);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const x = useTransform(scrollYProgress, [0.05, 0.95], [0, -distance]);
+  const titleOpacity = useTransform(scrollYProgress, [0, 0.05, 0.12], [1, 1, 0]);
 
   return (
     <section ref={ref} className="gv-cats">
@@ -365,7 +380,7 @@ function CategoryAct() {
             Seven worlds <em>under one roof.</em>
           </h3>
         </motion.div>
-        <motion.div className="gv-cats-track" style={{ x }}>
+        <motion.div ref={trackRef} className="gv-cats-track" style={{ x }}>
           {CATEGORIES.map((c, i) => (
             <article key={c.name} className="gv-cat" data-i={i}>
               <div className="gv-cat-tag">{c.tag}</div>
@@ -375,6 +390,7 @@ function CategoryAct() {
               <p className="gv-cat-desc">{CAT_DESC[c.name]}</p>
             </article>
           ))}
+          <div className="gv-cats-end" />
         </motion.div>
       </div>
     </section>
