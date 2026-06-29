@@ -1145,8 +1145,8 @@ html, body { overflow-x: clip; }
 /* ====== ACT 2 MARQUEE ====== */
 .gv-marquee {
   position: relative;
-  height: 200vh;
-  padding: 25vh 0 22vh;
+  height: 130vh;
+  padding: 12vh 0 10vh;
   background: ${INK};
   overflow: hidden;
 }
@@ -1179,7 +1179,7 @@ html, body { overflow-x: clip; }
 /* ====== ACT 3 NAME ====== */
 .gv-name-act {
   position: relative;
-  height: 130vh;
+  height: 100vh;
   background: ${INK};
 }
 .gv-name-sticky {
@@ -1823,11 +1823,11 @@ html, body { overflow-x: clip; }
   .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
   .gv-scroll-arrow { height: 28px; }
 
-  .gv-marquee { padding: 18vh 0 16vh; height: 180vh; position: relative; }
+  .gv-marquee { padding: 10vh 0 8vh; height: 120vh; position: relative; }
   .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
-  .gv-name-act { height: 130vh; }
+  .gv-name-act { height: 100vh; }
   .gv-name { font-size: clamp(2.2rem, 14vw, 4rem); }
   .gv-name-eye { font-size: 10px; letter-spacing: 0.32em; margin-bottom: 22px; }
   .gv-name-tag { margin-top: 22px; font-size: 1rem; padding: 0 24px; }
