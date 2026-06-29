@@ -1145,6 +1145,7 @@ html, body { overflow-x: clip; }
 /* ====== ACT 2 MARQUEE ====== */
 .gv-marquee {
   position: relative;
+  height: 200vh;
   padding: 25vh 0 22vh;
   background: ${INK};
   overflow: hidden;
@@ -1822,7 +1823,7 @@ html, body { overflow-x: clip; }
   .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
   .gv-scroll-arrow { height: 28px; }
 
-  .gv-marquee { padding: 18vh 0 16vh; height: 400vh; position: relative; }
+  .gv-marquee { padding: 18vh 0 16vh; height: 180vh; position: relative; }
   .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
