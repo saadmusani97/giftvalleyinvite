@@ -89,6 +89,7 @@ function Invitation() {
         <CurtainRevealAct videoRef={videoRef} videoReady={loaded} />
         <InvitedAct />
         <NameAct />
+        <ScratchAct />
         <DateAct />
         <FinaleAct onShare={onShare} />
 
@@ -592,6 +593,154 @@ const CAT_DESC: Record<string, string> = {
   "RC Cars": "Pocket horsepower. Real engineering. Outright fun.",
   Bikes: "First rides, mountain runs, weekend commutes. Pick a saddle.",
 };
+
+/* ============== SCRATCH CARD ============== */
+
+function ScratchAct() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [revealed, setRevealed] = useState(false);
+  const [scratching, setScratching] = useState(false);
+  const [percent, setPercent] = useState(0);
+  const isDrawing = useRef(false);
+  const hasPopped = useRef(false);
+
+  // Build the scratch layer once
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // Silver scratch surface
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0,   "#c8c8c8");
+    grad.addColorStop(0.4, "#e8e8e8");
+    grad.addColorStop(0.6, "#b0b0b0");
+    grad.addColorStop(1,   "#d4d4d4");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Texture lines
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < W; i += 6) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+    }
+
+    // Hint text
+    ctx.fillStyle = "rgba(80,60,40,0.55)";
+    ctx.font = "bold 15px Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("✦  Scratch to reveal your offer  ✦", W / 2, H / 2);
+  }, []);
+
+  const getPos = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if ("touches" in e) {
+      return {
+        x: (e.touches[0].clientX - rect.left) * scaleX,
+        y: (e.touches[0].clientY - rect.top)  * scaleY,
+      };
+    }
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top)  * scaleY,
+    };
+  };
+
+  const scratch = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !isDrawing.current) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    e.preventDefault();
+    const { x, y } = getPos(e, canvas);
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.beginPath();
+    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Calculate how much is revealed
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    let cleared = 0;
+    for (let i = 3; i < data.length; i += 4) if (data[i] === 0) cleared++;
+    const pct = Math.round((cleared / (canvas.width * canvas.height)) * 100);
+    setPercent(pct);
+
+    if (pct > 55 && !hasPopped.current) {
+      hasPopped.current = true;
+      // Clear the whole canvas for clean reveal
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      setRevealed(true);
+    }
+  };
+
+  const startScratch = (e: React.MouseEvent | React.TouchEvent) => {
+    isDrawing.current = true;
+    setScratching(true);
+    scratch(e);
+  };
+
+  const stopScratch = () => {
+    isDrawing.current = false;
+    setScratching(false);
+  };
+
+  return (
+    <section className="gv-scratch-section">
+      <div className="gv-scratch-eyebrow">— Opening Offer —</div>
+      <h3 className="gv-scratch-title">You've unlocked a special deal</h3>
+      <p className="gv-scratch-sub">Scratch the card below to reveal your exclusive offer</p>
+
+      <div className={`gv-scratch-wrap${revealed ? " gv-scratch-wrap--revealed" : ""}`}>
+        {/* Reward underneath */}
+        <div className="gv-scratch-reward">
+          <div className="gv-scratch-badge">25% OFF</div>
+          <div className="gv-scratch-reward-line">on your first purchase</div>
+          <div className="gv-scratch-reward-valid">Valid for first 3 days of opening</div>
+          <div className="gv-scratch-reward-code">USE CODE: <strong>GV25</strong></div>
+          {revealed && (
+            <div className="gv-scratch-confetti" aria-hidden>
+              {["✦","★","✦","★","✦","★","✦","★"].map((s, i) => (
+                <span key={i} className="gv-scratch-star" style={{ "--i": i } as React.CSSProperties}>{s}</span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Scratch canvas on top */}
+        {!revealed && (
+          <canvas
+            ref={canvasRef}
+            className={`gv-scratch-canvas${scratching ? " gv-scratch-canvas--active" : ""}`}
+            width={560}
+            height={280}
+            onMouseDown={startScratch}
+            onMouseMove={scratch}
+            onMouseUp={stopScratch}
+            onMouseLeave={stopScratch}
+            onTouchStart={startScratch}
+            onTouchMove={scratch}
+            onTouchEnd={stopScratch}
+          />
+        )}
+
+        {/* Progress hint */}
+        {!revealed && percent > 5 && percent <= 55 && (
+          <div className="gv-scratch-progress">
+            {percent < 30 ? "Keep scratching…" : "Almost there…"}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
 
 /* ============== ACT 5: GRAND OPENING DATE ============== */
 
@@ -1336,6 +1485,126 @@ html, body { overflow-x: clip; }
   .gv-cats { height: 500vh; }
   .gv-cat-name { font-size: 26px; }
   .gv-cat-icon svg { width: 56px; height: 56px; }
+}
+
+/* ====== SCRATCH CARD ====== */
+.gv-scratch-section {
+  background: ${INK};
+  padding: 80px 20px 100px;
+  display: flex; flex-direction: column; align-items: center;
+  text-align: center;
+}
+.gv-scratch-eyebrow {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 13px; letter-spacing: 0.12em;
+  color: rgba(237,230,214,0.5);
+  margin-bottom: 16px;
+}
+.gv-scratch-title {
+  font-family: 'Fraunces', serif; font-weight: 500;
+  font-size: clamp(1.6rem, 5vw, 2.8rem);
+  color: ${PAPER}; margin: 0 0 12px;
+  line-height: 1.1;
+}
+.gv-scratch-sub {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  color: rgba(237,230,214,0.5);
+  margin: 0 0 40px;
+}
+.gv-scratch-wrap {
+  position: relative;
+  width: min(560px, 92vw);
+  border-radius: 6px;
+  overflow: visible;
+  box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+}
+.gv-scratch-reward {
+  width: 100%; height: 280px;
+  background: ${PAPER};
+  background-image: radial-gradient(circle at 50% 40%, rgba(255,255,255,0.5), transparent 70%);
+  border-radius: 6px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+.gv-scratch-badge {
+  font-family: 'Fraunces', serif; font-weight: 900;
+  font-size: clamp(3rem, 14vw, 5.5rem);
+  color: ${WAX};
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: 0 4px 20px rgba(168,54,42,0.3);
+}
+.gv-scratch-reward-line {
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: clamp(1rem, 3.5vw, 1.3rem);
+  color: ${INK};
+}
+.gv-scratch-reward-valid {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(14,11,8,0.5);
+}
+.gv-scratch-reward-code {
+  margin-top: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px; letter-spacing: 0.25em; text-transform: uppercase;
+  color: ${INK};
+  background: rgba(168,54,42,0.12);
+  padding: 6px 18px; border-radius: 2px;
+  border: 1px dashed ${WAX};
+}
+.gv-scratch-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border-radius: 6px;
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><circle cx='16' cy='16' r='12' fill='rgba(200,200,200,0.7)' stroke='white' stroke-width='2'/></svg>") 16 16, crosshair;
+  touch-action: none;
+}
+.gv-scratch-canvas--active { cursor: none; }
+.gv-scratch-progress {
+  position: absolute; bottom: -32px; left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Fraunces', serif; font-style: italic;
+  font-size: 13px; color: rgba(237,230,214,0.5);
+  white-space: nowrap;
+  animation: gv-tap-breathe 1.5s ease-in-out infinite;
+}
+/* pop animation on full reveal */
+.gv-scratch-wrap--revealed .gv-scratch-badge {
+  animation: gv-scratch-pop 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes gv-scratch-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  70%  { transform: scale(1.12); }
+  100% { transform: scale(1); opacity: 1; }
+}
+/* confetti stars */
+.gv-scratch-confetti {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.gv-scratch-star {
+  position: absolute;
+  font-size: 18px;
+  color: ${GOLD};
+  animation: gv-star-burst 1.2s cubic-bezier(0.22,1,0.36,1) both;
+  animation-delay: calc(var(--i) * 0.07s);
+  left: calc(10% + var(--i) * 11%);
+  top: 10%;
+}
+@keyframes gv-star-burst {
+  0%   { opacity: 0; transform: translateY(0) scale(0); }
+  50%  { opacity: 1; transform: translateY(-60px) scale(1.3) rotate(30deg); }
+  100% { opacity: 0; transform: translateY(-110px) scale(0.8) rotate(60deg); }
+}
+@media (max-width: 768px) {
+  .gv-scratch-section { padding: 60px 16px 80px; }
+  .gv-scratch-reward  { height: 240px; }
 }
 
 /* ====== ACT 5 DATE ====== */
