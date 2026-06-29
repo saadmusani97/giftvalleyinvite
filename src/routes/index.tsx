@@ -5,8 +5,6 @@ import {
   useScroll,
   useTransform,
   useSpring,
-  useMotionValueEvent,
-  useReducedMotion,
 } from "framer-motion";
 
 export const Route = createFileRoute("/")({
@@ -63,7 +61,6 @@ const CATEGORIES: Cat[] = [
 ];
 
 function Invitation() {
-  const reduce = useReducedMotion();
   const [toast, setToast] = useState(false);
 
   const onShare = async () => {
@@ -84,10 +81,9 @@ function Invitation() {
       <Nav />
       <ProgressBar />
 
-      <HeroOpening reduce={!!reduce} />
+      <CurtainRevealAct />
       <InvitedAct />
       <NameAct />
-      <CategoryAct />
       <DateAct />
       <FinaleAct onShare={onShare} />
 
@@ -134,19 +130,27 @@ function Cursor() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    let x = window.innerWidth / 2, y = window.innerHeight / 2;
-    let tx = x, ty = y;
+    let x = window.innerWidth / 2;
+    let y = window.innerHeight / 2;
+    let tx = x;
+    let ty = y;
     let raf = 0;
-    const onMove = (e: MouseEvent) => { tx = e.clientX; ty = e.clientY; };
+    const onMove = (e: MouseEvent) => {
+      tx = e.clientX;
+      ty = e.clientY;
+    };
     const loop = () => {
       x += (tx - x) * 0.18;
       y += (ty - y) * 0.18;
-      el.style.transform = `translate3d(${x - 12}px, ${y - 12}px, 0)`;
+      el.style.transform = `translate(${x - 12}px, ${y - 12}px)`;
       raf = requestAnimationFrame(loop);
     };
     window.addEventListener("mousemove", onMove);
     raf = requestAnimationFrame(loop);
-    return () => { cancelAnimationFrame(raf); window.removeEventListener("mousemove", onMove); };
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("mousemove", onMove);
+    };
   }, []);
   return <div ref={ref} className="gv-cursor" aria-hidden />;
 }
@@ -357,7 +361,103 @@ function Letter({
   );
 }
 
-/* ============== ACT 4: CATEGORY HORIZONTAL SCROLL ============== */
+/* ============== ACT 4: CURTAIN REVEAL ============== */
+
+type RevealPhase = "idle" | "playing" | "paused-ribbon" | "resuming" | "done";
+
+function CurtainRevealAct() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [phase, setPhase] = useState<RevealPhase>("idle");
+
+  // Phase machine
+  const handleTap = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+
+    if (phase === "idle") {
+      vid.currentTime = 0;
+      vid.play();
+      setPhase("playing");
+    } else if (phase === "paused-ribbon") {
+      vid.play();
+      setPhase("resuming");
+    }
+  };
+
+  // Watch time — pause at exactly 3 s
+  const handleTimeUpdate = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (phase === "playing" && vid.currentTime >= 3) {
+      vid.pause();
+      setPhase("paused-ribbon");
+    }
+  };
+
+  // Video finished → show card image
+  const handleEnded = () => {
+    setPhase("done");
+  };
+
+  // Overlay text content per phase
+  const tapLabel =
+    phase === "idle"
+      ? "Tap to reveal"
+      : phase === "paused-ribbon"
+      ? "Tap to cut ribbon"
+      : null;
+
+  const showOverlay = phase === "idle" || phase === "paused-ribbon";
+  const showCard = phase === "done";
+
+  return (
+    <section className="gv-curtain-section">
+      {/* ── video layer ── */}
+      <div
+        className={`gv-curtain-video-wrap${showCard ? " hidden" : ""}`}
+        onClick={handleTap}
+        role="button"
+        tabIndex={0}
+        aria-label={tapLabel ?? "Grand Opening reveal"}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleTap(); }}
+      >
+        <video
+          ref={videoRef}
+          className="gv-curtain-video"
+          src="https://github.com/saadmusani97/giftvalleyinvite/releases/download/v1.0-assets/curtainsrevealingvideo.mp4"
+          playsInline
+          muted
+          preload="auto"
+          onTimeUpdate={handleTimeUpdate}
+          onEnded={handleEnded}
+        />
+
+        {/* dim overlay + tap prompt */}
+        {showOverlay && (
+          <div className="gv-curtain-overlay">
+            <div className="gv-curtain-pulse-ring" aria-hidden />
+            <div className="gv-curtain-tap-label">
+              {tapLabel}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── final card image ── */}
+      {showCard && (
+        <div className="gv-curtain-card-reveal">
+          <img
+            src="/cardimage.png"
+            alt="GiftValley Grand Opening Invitation Card"
+            className="gv-curtain-card-img"
+          />
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ============== ACT 4 (ORIGINAL): CATEGORY HORIZONTAL SCROLL ============== */
 
 function CategoryAct() {
   const ref = useRef<HTMLDivElement>(null);
@@ -527,9 +627,6 @@ function FilmGrain() {
   return <div className="gv-grain" aria-hidden />;
 }
 
-/* useMotionValueEvent kept imported in case future hooks need it */
-void useMotionValueEvent;
-
 /* ============== STYLES ============== */
 
 const INK = "#0E0B08";
@@ -592,6 +689,7 @@ html, body { overflow-x: clip; }
   border-radius: 50%; pointer-events: none; z-index: 100;
   border: 1px solid ${PAPER};
   mix-blend-mode: difference;
+  will-change: transform;
 }
 
 .gv-nav {
@@ -769,8 +867,8 @@ html, body { overflow-x: clip; }
   transform: translate(-50%, -50%);
   z-index: 6; pointer-events: none;
   display: flex;
-}
-.gv-seal-half {
+  margin-left: 0;
+}.gv-seal-half {
   position: relative;
   width: 55px; height: 110px;
   overflow: hidden;
@@ -798,8 +896,8 @@ html, body { overflow-x: clip; }
 }
 .gv-seal-l::before { left: 0; }
 .gv-seal-r::before { left: -55px; }
-.gv-seal-l { justify-content: flex-end; padding-right: 4px; }
-.gv-seal-r { justify-content: flex-start; padding-left: 4px; }
+.gv-seal-l { justify-content: flex-end; padding-right: 0; }
+.gv-seal-r { justify-content: flex-start; padding-left: 0; }
 .gv-seal-half span { position: relative; z-index: 2; }
 
 .gv-scroll-hint {
@@ -896,7 +994,87 @@ html, body { overflow-x: clip; }
   letter-spacing: 0.05em;
 }
 
-/* ====== ACT 4 CATEGORIES ====== */
+/* ====== ACT 4 CURTAIN REVEAL ====== */
+.gv-curtain-section {
+  position: relative;
+  background: ${INK};
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 80px 20px;
+}
+
+.gv-curtain-video-wrap {
+  position: relative;
+  width: min(520px, 92vw);
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 40px 90px rgba(0,0,0,0.7);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+.gv-curtain-video-wrap.hidden { display: none; }
+
+.gv-curtain-video {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.gv-curtain-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  background: rgba(0,0,0,0.38);
+  backdrop-filter: blur(1px);
+  -webkit-backdrop-filter: blur(1px);
+}
+
+.gv-curtain-pulse-ring {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(237,230,214,0.7);
+  animation: gv-ring-pulse 1.8s ease-out infinite;
+}
+@keyframes gv-ring-pulse {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  60%  { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.gv-curtain-tap-label {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  color: ${PAPER};
+  letter-spacing: 0.06em;
+  text-align: center;
+  animation: gv-tap-breathe 2.4s ease-in-out infinite;
+}
+@keyframes gv-tap-breathe {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.gv-curtain-card-reveal {
+  width: min(520px, 92vw);
+  animation: gv-card-in 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes gv-card-in {
+  from { opacity: 0; transform: scale(0.92) translateY(28px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.gv-curtain-card-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 40px 90px rgba(0,0,0,0.7);
+}
+
+/* ====== ACT 4 CATEGORIES (HIDDEN / TEMPORARY) ====== */
 .gv-cats {
   position: relative;
   height: 350vh;
