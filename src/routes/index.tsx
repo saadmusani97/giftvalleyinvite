@@ -292,13 +292,11 @@ function InvitedAct() {
   return (
     <section ref={ref} className="gv-marquee">
       <motion.div ref={rowRef} className="gv-marquee-row" style={{ x, opacity }}>
-        <span className="gv-marquee-word">cordially</span>
+        <span className="gv-marquee-word">warmly</span>
         <span className="gv-marquee-amp">&</span>
-        <span className="gv-marquee-word italic">warmly</span>
+        <span className="gv-marquee-word italic">invited</span>
         <span className="gv-marquee-amp">·</span>
-        <span className="gv-marquee-word">invited</span>
-        <span className="gv-marquee-amp">·</span>
-        <span className="gv-marquee-word italic">to witness</span>
+        <span className="gv-marquee-word">to witness</span>
       </motion.div>
       <div className="gv-marquee-sub">
         A retail house of toys, gifts, showpieces, sports, video games, RC cars & bikes.
@@ -321,7 +319,7 @@ function NameAct() {
     <section ref={ref} className="gv-name-act">
       <div className="gv-name-sticky">
         <motion.div className="gv-name-eye" style={{ opacity: containerOpacity }}>
-          presenting
+          exclusive offers · 3 days only
         </motion.div>
         <motion.h2
           className="gv-name"
@@ -340,7 +338,7 @@ function NameAct() {
           })}
         </motion.h2>
         <motion.div className="gv-name-tag" style={{ opacity: containerOpacity }}>
-          where every gift tells a story
+          special deals for the first 3 days of opening
         </motion.div>
       </div>
     </section>
@@ -510,9 +508,9 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           aria-hidden={!isDone}
         />
 
-        {/* tap overlay — no blur, just the label */}
+        {/* tap overlay — idle: text only; paused: blur + dim + text */}
         {showOverlay && (
-          <div className="gv-curtain-overlay">
+          <div className={`gv-curtain-overlay${phase === "paused-ribbon" ? " gv-curtain-overlay--blur" : ""}`}>
             <div className="gv-curtain-tap-label">{tapLabel}</div>
           </div>
         )}
@@ -617,7 +615,7 @@ function DateAct() {
           {DATE_TEXT}
         </motion.h2>
         <motion.p className="gv-date-sub" style={{ opacity: subOp }}>
-          Tuesday · doors open at 11:00 AM
+          Tuesday · opening in the evening
         </motion.p>
       </div>
     </section>
@@ -653,7 +651,7 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
           </div>
           <div>
             <div className="gv-meta-k">TIME</div>
-            <div className="gv-meta-v">11:00 AM</div>
+            <div className="gv-meta-v">Evening</div>
           </div>
           <div>
             <div className="gv-meta-k">DAY</div>
@@ -1027,7 +1025,7 @@ html, body { overflow-x: clip; }
 /* ====== ACT 3 NAME ====== */
 .gv-name-act {
   position: relative;
-  height: 250vh;
+  height: 130vh;
   background: ${INK};
 }
 .gv-name-sticky {
@@ -1190,6 +1188,12 @@ html, body { overflow-x: clip; }
   gap: 20px;
   z-index: 2;
   pointer-events: none;
+  transition: background 0.3s ease;
+}
+.gv-curtain-overlay--blur {
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .gv-curtain-tap-label {
@@ -1529,7 +1533,7 @@ html, body { overflow-x: clip; }
   .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
-  .gv-name-act { height: 200vh; }
+  .gv-name-act { height: 130vh; }
   .gv-name { font-size: clamp(2.2rem, 14vw, 4rem); }
   .gv-name-eye { font-size: 10px; letter-spacing: 0.32em; margin-bottom: 22px; }
   .gv-name-tag { margin-top: 22px; font-size: 1rem; padding: 0 24px; }
