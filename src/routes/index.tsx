@@ -62,6 +62,7 @@ const CATEGORIES: Cat[] = [
 
 function Invitation() {
   const [toast, setToast] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const onShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -77,25 +78,29 @@ function Invitation() {
     <div className="gv">
       <style>{CSS}</style>
 
-      <Cursor />
-      <Nav />
-      <ProgressBar />
+      <PageLoader onReady={() => setLoaded(true)} />
 
-      <CurtainRevealAct />
-      <InvitedAct />
-      <NameAct />
-      <DateAct />
-      <FinaleAct onShare={onShare} />
+      <div className={"gv-main" + (loaded ? " gv-main--visible" : "")}>
+        <Cursor />
+        <Nav />
+        <ProgressBar />
 
-      <footer className="gv-footer">
-        <div className="gv-footer-row">
-          <span className="gv-mark">GV</span>
-          <span>GiftValley · Est. 2026</span>
-          <span>Naya Nagar</span>
-        </div>
-      </footer>
+        <CurtainRevealAct videoReady={loaded} />
+        <InvitedAct />
+        <NameAct />
+        <DateAct />
+        <FinaleAct onShare={onShare} />
 
-      <div className={"gv-toast" + (toast ? " show" : "")}>Link copied</div>
+        <footer className="gv-footer">
+          <div className="gv-footer-row">
+            <span className="gv-mark">GV</span>
+            <span>GiftValley · Est. 2026</span>
+            <span>Naya Nagar</span>
+          </div>
+        </footer>
+
+        <div className={"gv-toast" + (toast ? " show" : "")}>Link copied</div>
+      </div>
     </div>
   );
 }
@@ -361,18 +366,83 @@ function Letter({
   );
 }
 
-/* ============== ACT 4: CURTAIN REVEAL ============== */
+/* ============== PAGE LOADER ============== */
+
+function PageLoader({ onReady }: { onReady: () => void }) {
+  const [progress, setProgress] = useState(0);
+  const [exiting, setExiting] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    // Fake progress bar up to 90% while video loads, jump to 100 on canplaythrough
+    let prog = 0;
+    const tick = setInterval(() => {
+      prog = Math.min(prog + Math.random() * 4, 90);
+      setProgress(Math.round(prog));
+    }, 120);
+
+    const vid = videoRef.current;
+    if (!vid) return () => clearInterval(tick);
+
+    const onCanPlay = () => {
+      clearInterval(tick);
+      setProgress(100);
+      setTimeout(() => {
+        setExiting(true);
+        setTimeout(onReady, 900);
+      }, 600);
+    };
+
+    vid.addEventListener("canplaythrough", onCanPlay);
+    // fallback — if it takes >12s just proceed anyway
+    const fallback = setTimeout(onCanPlay, 12000);
+
+    return () => {
+      clearInterval(tick);
+      clearTimeout(fallback);
+      vid.removeEventListener("canplaythrough", onCanPlay);
+    };
+  }, [onReady]);
+
+  return (
+    <>
+      {/* hidden preload video */}
+      <video
+        ref={videoRef}
+        src="/curtainsrevealingvideo.mp4"
+        preload="auto"
+        muted
+        playsInline
+        style={{ display: "none" }}
+        aria-hidden
+      />
+
+      <div className={"gv-loader" + (exiting ? " gv-loader--exit" : "")}>
+        <div className="gv-loader-inner">
+          <div className="gv-loader-mono">GV</div>
+          <p className="gv-loader-script">You are invited</p>
+          <div className="gv-loader-sub">GiftValley · Grand Opening · 29 June 2026</div>
+          <div className="gv-loader-bar-wrap">
+            <div className="gv-loader-bar" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* ============== ACT 1: CURTAIN REVEAL ============== */
 
 type RevealPhase = "idle" | "playing" | "paused-ribbon" | "resuming" | "done";
 
-function CurtainRevealAct() {
+function CurtainRevealAct({ videoReady }: { videoReady: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [phase, setPhase] = useState<RevealPhase>("idle");
 
   // Phase machine
   const handleTap = () => {
     const vid = videoRef.current;
-    if (!vid) return;
+    if (!vid || !videoReady) return;
 
     if (phase === "idle") {
       vid.currentTime = 0;
@@ -993,6 +1063,67 @@ html, body { overflow-x: clip; }
   color: rgba(237,230,214,0.6);
   letter-spacing: 0.05em;
 }
+
+/* ====== PAGE LOADER ====== */
+.gv-loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: ${INK};
+  display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.gv-loader--exit {
+  opacity: 0;
+  pointer-events: none;
+}
+.gv-loader-inner {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 18px; text-align: center; padding: 0 32px;
+}
+.gv-loader-mono {
+  width: 72px; height: 72px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px;
+  letter-spacing: 0.06em; color: #f5e6cf;
+  background: radial-gradient(circle at 35% 30%, #d24a36 0%, ${WAX} 50%, ${WAX_DEEP} 100%);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 60px rgba(168,54,42,0.25);
+  margin-bottom: 8px;
+  animation: gv-loader-glow 2.4s ease-in-out infinite;
+}
+@keyframes gv-loader-glow {
+  0%,100% { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 40px rgba(168,54,42,0.2); }
+  50%      { box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 80px rgba(168,54,42,0.45); }
+}
+.gv-loader-script {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(3rem, 12vw, 5.5rem);
+  font-weight: 400; line-height: 1;
+  color: ${PAPER};
+  margin: 0;
+  animation: gv-tap-breathe 3s ease-in-out infinite;
+}
+.gv-loader-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(237,230,214,0.45);
+  margin-top: 4px;
+}
+.gv-loader-bar-wrap {
+  width: min(240px, 60vw); height: 1px;
+  background: rgba(237,230,214,0.12);
+  margin-top: 20px; overflow: hidden;
+}
+.gv-loader-bar {
+  height: 100%;
+  background: linear-gradient(90deg, ${WAX}, ${GOLD});
+  transition: width 0.3s ease;
+}
+
+/* ====== MAIN CONTENT FADE-IN ====== */
+.gv-main {
+  opacity: 0;
+  transition: opacity 0.6s ease 0.1s;
+}
+.gv-main--visible { opacity: 1; }
 
 /* ====== ACT 4 CURTAIN REVEAL ====== */
 .gv-curtain-section {
