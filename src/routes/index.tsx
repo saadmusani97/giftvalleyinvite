@@ -424,7 +424,7 @@ function CurtainRevealAct() {
         <video
           ref={videoRef}
           className="gv-curtain-video"
-          src="https://github.com/saadmusani97/giftvalleyinvite/releases/download/v1.0-assets/curtainsrevealingvideo.mp4"
+          src="/curtainsrevealingvideo.mp4"
           playsInline
           muted
           preload="auto"
