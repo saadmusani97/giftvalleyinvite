@@ -426,7 +426,13 @@ type RevealPhase = "idle" | "playing" | "paused-ribbon" | "resuming" | "done";
 function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVideoElement | null>; videoReady: boolean }) {
   const [phase, setPhase] = useState<RevealPhase>("idle");
 
-  // Phase machine
+  // As soon as ready, seek to frame 0 so the poster frame is the actual first frame
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid || !videoReady) return;
+    vid.currentTime = 0;
+  }, [videoReady, videoRef]);
+
   const handleTap = () => {
     const vid = videoRef.current;
     if (!vid || !videoReady) return;
@@ -441,7 +447,7 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
     }
   };
 
-  // Watch time — pause at exactly 3 s
+  // Pause at exactly 3s
   const handleTimeUpdate = () => {
     const vid = videoRef.current;
     if (!vid) return;
@@ -451,36 +457,33 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
     }
   };
 
-  // Video finished → show card image
+  // Video finished → crossfade to card
   const handleEnded = () => {
     setPhase("done");
   };
 
-  // Overlay text content per phase
   const tapLabel =
-    phase === "idle"
-      ? "Tap to reveal"
-      : phase === "paused-ribbon"
-      ? "Tap to cut ribbon"
-      : null;
+    phase === "idle" ? "Tap to reveal" :
+    phase === "paused-ribbon" ? "Tap to cut ribbon" :
+    null;
 
   const showOverlay = phase === "idle" || phase === "paused-ribbon";
-  const showCard = phase === "done";
+  const isDone = phase === "done";
 
   return (
     <section className="gv-curtain-section">
-      {/* ── video layer ── */}
       <div
-        className={`gv-curtain-video-wrap${showCard ? " hidden" : ""}`}
+        className="gv-curtain-stage"
         onClick={handleTap}
         role="button"
         tabIndex={0}
         aria-label={tapLabel ?? "Grand Opening reveal"}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleTap(); }}
       >
+        {/* video — always in DOM, fades out when done */}
         <video
           ref={videoRef}
-          className="gv-curtain-video"
+          className={"gv-curtain-video" + (isDone ? " gv-curtain-video--out" : "")}
           src="/curtainsrevealingvideo.mp4"
           playsInline
           muted
@@ -489,27 +492,22 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           onEnded={handleEnded}
         />
 
-        {/* dim overlay + tap prompt */}
+        {/* card image — always in DOM, fades in when done */}
+        <img
+          src="/cardimage.png"
+          alt="GiftValley Grand Opening Invitation Card"
+          className={"gv-curtain-card-img" + (isDone ? " gv-curtain-card-img--in" : "")}
+          aria-hidden={!isDone}
+        />
+
+        {/* tap overlay */}
         {showOverlay && (
           <div className="gv-curtain-overlay">
             <div className="gv-curtain-pulse-ring" aria-hidden />
-            <div className="gv-curtain-tap-label">
-              {tapLabel}
-            </div>
+            <div className="gv-curtain-tap-label">{tapLabel}</div>
           </div>
         )}
       </div>
-
-      {/* ── final card image ── */}
-      {showCard && (
-        <div className="gv-curtain-card-reveal">
-          <img
-            src="/cardimage.png"
-            alt="GiftValley Grand Opening Invitation Card"
-            className="gv-curtain-card-img"
-          />
-        </div>
-      )}
     </section>
   );
 }
@@ -1121,7 +1119,8 @@ html, body { overflow-x: clip; }
   padding: 80px 20px;
 }
 
-.gv-curtain-video-wrap {
+/* stacked stage — video + image sit on top of each other */
+.gv-curtain-stage {
   position: relative;
   width: min(520px, 92vw);
   border-radius: 4px;
@@ -1130,14 +1129,39 @@ html, body { overflow-x: clip; }
   box-shadow: 0 40px 90px rgba(0,0,0,0.7);
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  /* establish stacking context */
+  isolation: isolate;
 }
-.gv-curtain-video-wrap.hidden { display: none; }
 
 .gv-curtain-video {
   display: block;
   width: 100%;
   height: auto;
   pointer-events: none;
+  position: relative;
+  z-index: 1;
+  transition: opacity 0.7s ease;
+  opacity: 1;
+}
+.gv-curtain-video--out {
+  opacity: 0;
+}
+
+/* card image sits underneath, fades in */
+.gv-curtain-card-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.7s ease 0.2s;
+  pointer-events: none;
+}
+.gv-curtain-card-img--in {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .gv-curtain-overlay {
@@ -1148,6 +1172,7 @@ html, body { overflow-x: clip; }
   background: rgba(0,0,0,0.38);
   backdrop-filter: blur(1px);
   -webkit-backdrop-filter: blur(1px);
+  z-index: 2;
 }
 
 .gv-curtain-pulse-ring {
@@ -1174,22 +1199,6 @@ html, body { overflow-x: clip; }
 @keyframes gv-tap-breathe {
   0%,100% { opacity: 1; }
   50%      { opacity: 0.55; }
-}
-
-.gv-curtain-card-reveal {
-  width: min(520px, 92vw);
-  animation: gv-card-in 0.7s cubic-bezier(0.22,1,0.36,1) both;
-}
-@keyframes gv-card-in {
-  from { opacity: 0; transform: scale(0.92) translateY(28px); }
-  to   { opacity: 1; transform: scale(1) translateY(0); }
-}
-.gv-curtain-card-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 4px;
-  box-shadow: 0 40px 90px rgba(0,0,0,0.7);
 }
 
 /* ====== ACT 4 CATEGORIES (HIDDEN / TEMPORARY) ====== */
