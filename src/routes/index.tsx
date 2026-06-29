@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement, type RefObject } from "react";
 import {
   motion,
   useScroll,
@@ -14,12 +14,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "You are cordially invited to the Grand Opening of GiftValley — 29 June 2026, Shop No. 8, Akash Ganga Building, Naya Nagar.",
+          "You are cordially invited to the Grand Opening of GiftValley — 30 June 2026, Shop No. 8, Akash Ganga Building, Naya Nagar.",
       },
       { property: "og:title", content: "GiftValley — Grand Opening" },
       {
         property: "og:description",
-        content: "Where Every Gift Tells a Story. 29 June 2026.",
+        content: "Where Every Gift Tells a Story. 30 June 2026.",
       },
     ],
     links: [
@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
 });
 
 const NAME = "GIFTVALLEY";
-const DATE_TEXT = "29 · JUNE · 2026";
+const DATE_TEXT = "30 · JUNE · 2026";
 
 type Cat = { name: string; tag: string; icon: ReactElement };
 
@@ -63,6 +63,7 @@ const CATEGORIES: Cat[] = [
 function Invitation() {
   const [toast, setToast] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const onShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -78,14 +79,14 @@ function Invitation() {
     <div className="gv">
       <style>{CSS}</style>
 
-      <PageLoader onReady={() => setLoaded(true)} />
+      <PageLoader videoRef={videoRef} onReady={() => setLoaded(true)} />
 
       <div className={"gv-main" + (loaded ? " gv-main--visible" : "")}>
         <Cursor />
         <Nav />
         <ProgressBar />
 
-        <CurtainRevealAct videoReady={loaded} />
+        <CurtainRevealAct videoRef={videoRef} videoReady={loaded} />
         <InvitedAct />
         <NameAct />
         <DateAct />
@@ -113,7 +114,7 @@ function Nav() {
       <div className="gv-nav-mark">GV</div>
       <div className="gv-nav-meta">
         <span className="gv-dot" />
-        <span>Grand Opening · 29.06.2026</span>
+        <span>Grand Opening · 30.06.2026</span>
       </div>
     </div>
   );
@@ -368,13 +369,11 @@ function Letter({
 
 /* ============== PAGE LOADER ============== */
 
-function PageLoader({ onReady }: { onReady: () => void }) {
+function PageLoader({ videoRef, onReady }: { videoRef: RefObject<HTMLVideoElement | null>; onReady: () => void }) {
   const [progress, setProgress] = useState(0);
   const [exiting, setExiting] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Fake progress bar up to 90% while video loads, jump to 100 on canplaythrough
     let prog = 0;
     const tick = setInterval(() => {
       prog = Math.min(prog + Math.random() * 4, 90);
@@ -393,8 +392,10 @@ function PageLoader({ onReady }: { onReady: () => void }) {
       }, 600);
     };
 
+    // already buffered (e.g. cached)
+    if (vid.readyState >= 4) { onCanPlay(); return () => clearInterval(tick); }
+
     vid.addEventListener("canplaythrough", onCanPlay);
-    // fallback — if it takes >12s just proceed anyway
     const fallback = setTimeout(onCanPlay, 12000);
 
     return () => {
@@ -402,32 +403,19 @@ function PageLoader({ onReady }: { onReady: () => void }) {
       clearTimeout(fallback);
       vid.removeEventListener("canplaythrough", onCanPlay);
     };
-  }, [onReady]);
+  }, [onReady, videoRef]);
 
   return (
-    <>
-      {/* hidden preload video */}
-      <video
-        ref={videoRef}
-        src="/curtainsrevealingvideo.mp4"
-        preload="auto"
-        muted
-        playsInline
-        style={{ display: "none" }}
-        aria-hidden
-      />
-
-      <div className={"gv-loader" + (exiting ? " gv-loader--exit" : "")}>
-        <div className="gv-loader-inner">
-          <div className="gv-loader-mono">GV</div>
-          <p className="gv-loader-script">You are invited</p>
-          <div className="gv-loader-sub">GiftValley · Grand Opening · 29 June 2026</div>
-          <div className="gv-loader-bar-wrap">
-            <div className="gv-loader-bar" style={{ width: `${progress}%` }} />
-          </div>
+    <div className={"gv-loader" + (exiting ? " gv-loader--exit" : "")}>
+      <div className="gv-loader-inner">
+        <div className="gv-loader-mono">GV</div>
+        <p className="gv-loader-script">You are invited</p>
+        <div className="gv-loader-sub">GiftValley · Grand Opening · 30 June 2026</div>
+        <div className="gv-loader-bar-wrap">
+          <div className="gv-loader-bar" style={{ width: `${progress}%` }} />
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -435,8 +423,7 @@ function PageLoader({ onReady }: { onReady: () => void }) {
 
 type RevealPhase = "idle" | "playing" | "paused-ribbon" | "resuming" | "done";
 
-function CurtainRevealAct({ videoReady }: { videoReady: boolean }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVideoElement | null>; videoReady: boolean }) {
   const [phase, setPhase] = useState<RevealPhase>("idle");
 
   // Phase machine
@@ -615,7 +602,7 @@ function DateAct() {
           {DATE_TEXT}
         </motion.h2>
         <motion.p className="gv-date-sub" style={{ opacity: subOp }}>
-          Monday · doors open at 11:00 AM
+          Tuesday · doors open at 11:00 AM
         </motion.p>
       </div>
     </section>
@@ -647,7 +634,7 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
         <div className="gv-card-meta">
           <div>
             <div className="gv-meta-k">DATE</div>
-            <div className="gv-meta-v">29 June 2026</div>
+            <div className="gv-meta-v">30 June 2026</div>
           </div>
           <div>
             <div className="gv-meta-k">TIME</div>
@@ -655,7 +642,7 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
           </div>
           <div>
             <div className="gv-meta-k">DAY</div>
-            <div className="gv-meta-v">Monday</div>
+            <div className="gv-meta-v">Tuesday</div>
           </div>
         </div>
         <div className="gv-card-rule" />
