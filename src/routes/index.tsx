@@ -425,22 +425,29 @@ type RevealPhase = "idle" | "playing" | "paused-ribbon" | "resuming" | "done";
 
 function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVideoElement | null>; videoReady: boolean }) {
   const [phase, setPhase] = useState<RevealPhase>("idle");
-
-  // As soon as ready, seek to frame 0 so the poster frame is the actual first frame
-  useEffect(() => {
-    const vid = videoRef.current;
-    if (!vid || !videoReady) return;
-    vid.currentTime = 0;
-  }, [videoReady, videoRef]);
+  const seekingRef = useRef(false);
 
   const handleTap = () => {
     const vid = videoRef.current;
-    if (!vid || !videoReady) return;
+    if (!vid || !videoReady || seekingRef.current) return;
 
     if (phase === "idle") {
-      vid.currentTime = 0;
-      vid.play();
+      // On mobile, seek to 0 first, wait for seeked, then play
+      seekingRef.current = true;
       setPhase("playing");
+
+      const doPlay = () => {
+        seekingRef.current = false;
+        vid.play().catch(() => { /* autoplay blocked — already muted so shouldn't happen */ });
+      };
+
+      if (vid.currentTime === 0) {
+        // Already at start — play immediately
+        doPlay();
+      } else {
+        vid.addEventListener("seeked", doPlay, { once: true });
+        vid.currentTime = 0;
+      }
     } else if (phase === "paused-ribbon") {
       vid.play();
       setPhase("resuming");
@@ -485,6 +492,7 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           ref={videoRef}
           className={"gv-curtain-video" + (isDone ? " gv-curtain-video--out" : "")}
           src="/curtainsrevealingvideo.mp4"
+          poster="/curtains-poster.jpg"
           playsInline
           muted
           preload="auto"
@@ -1081,9 +1089,11 @@ html, body { overflow-x: clip; }
 .gv-loader-script {
   font-family: 'Great Vibes', cursive;
   font-size: clamp(3rem, 12vw, 5.5rem);
-  font-weight: 400; line-height: 1;
+  font-weight: 400; line-height: 1.2;
   color: ${PAPER};
   margin: 0;
+  padding-bottom: 0.15em;
+  overflow: visible;
   animation: gv-tap-breathe 3s ease-in-out infinite;
 }
 .gv-loader-sub {
