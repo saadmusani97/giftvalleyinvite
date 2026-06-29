@@ -274,18 +274,45 @@ function InvitedAct() {
   const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const [dist, setDist] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
-    const m = () => {
+    const check = () => {
+      setIsMobile(window.innerWidth <= 768);
       const r = rowRef.current;
       if (!r) return;
       setDist(Math.max(0, r.scrollWidth - window.innerWidth + 40));
     };
-    m();
-    window.addEventListener("resize", m);
-    return () => window.removeEventListener("resize", m);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, []);
+
   const x = useTransform(scrollYProgress, [0, 1], [80, -dist]);
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
+
+  if (isMobile) {
+    return (
+      <section ref={ref} className="gv-marquee gv-marquee--mobile">
+        <motion.div className="gv-marquee-stack" style={{ opacity }}>
+          <div className="gv-marquee-stack-line">
+            <span className="gv-marquee-word">cordially</span>
+            <span className="gv-marquee-amp">&</span>
+            <span className="gv-marquee-word italic">warmly</span>
+          </div>
+          <div className="gv-marquee-stack-line">
+            <span className="gv-marquee-word">invited</span>
+          </div>
+          <div className="gv-marquee-stack-line small">
+            <span className="gv-marquee-word italic">to witness</span>
+          </div>
+        </motion.div>
+        <div className="gv-marquee-sub">
+          A retail house of toys, gifts, showpieces, sports, video games, RC cars & bikes.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section ref={ref} className="gv-marquee">
@@ -508,11 +535,18 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           aria-hidden={!isDone}
         />
 
-        {/* tap overlay */}
+        {/* tap overlay — no blur, just the label */}
         {showOverlay && (
           <div className="gv-curtain-overlay">
-            <div className="gv-curtain-pulse-ring" aria-hidden />
             <div className="gv-curtain-tap-label">{tapLabel}</div>
+          </div>
+        )}
+
+        {/* scroll hint after card appears */}
+        {isDone && (
+          <div className="gv-curtain-scroll-hint">
+            <span>Scroll to continue</span>
+            <div className="gv-scroll-arrow" />
           </div>
         )}
       </div>
@@ -989,6 +1023,30 @@ html, body { overflow-x: clip; }
   background: ${INK};
   overflow: hidden;
 }
+.gv-marquee--mobile {
+  padding: 18vh 0 16vh;
+  overflow: visible;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center;
+}
+.gv-marquee-stack {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px;
+  padding: 0 20px;
+}
+.gv-marquee-stack-line {
+  display: flex; align-items: center; justify-content: center;
+  gap: 20px;
+  font-family: 'Fraunces', serif;
+  font-size: clamp(3rem, 16vw, 5.5rem);
+  font-weight: 500; line-height: 1;
+  white-space: nowrap;
+  color: ${PAPER};
+}
+.gv-marquee-stack-line.small {
+  font-size: clamp(2rem, 11vw, 3.5rem);
+  font-style: italic; font-weight: 400; color: ${GOLD};
+}
 .gv-marquee-row {
   display: flex; align-items: center; gap: 60px;
   font-family: 'Fraunces', serif;
@@ -1126,7 +1184,7 @@ html, body { overflow-x: clip; }
   background: ${INK};
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 80px 20px;
+  padding: 80px 20px 120px;
 }
 
 /* stacked stage — video + image sit on top of each other */
@@ -1179,22 +1237,8 @@ html, body { overflow-x: clip; }
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 20px;
-  background: rgba(0,0,0,0.38);
-  backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
   z-index: 2;
-}
-
-.gv-curtain-pulse-ring {
-  width: 72px; height: 72px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(237,230,214,0.7);
-  animation: gv-ring-pulse 1.8s ease-out infinite;
-}
-@keyframes gv-ring-pulse {
-  0%   { transform: scale(1);   opacity: 0.8; }
-  60%  { transform: scale(1.5); opacity: 0; }
-  100% { transform: scale(1.5); opacity: 0; }
+  pointer-events: none;
 }
 
 .gv-curtain-tap-label {
@@ -1204,11 +1248,24 @@ html, body { overflow-x: clip; }
   color: ${PAPER};
   letter-spacing: 0.06em;
   text-align: center;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 40px rgba(0,0,0,0.6);
   animation: gv-tap-breathe 2.4s ease-in-out infinite;
 }
 @keyframes gv-tap-breathe {
   0%,100% { opacity: 1; }
   50%      { opacity: 0.55; }
+}
+
+.gv-curtain-scroll-hint {
+  position: absolute;
+  bottom: -60px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+  color: rgba(237,230,214,0.55);
+  animation: gv-card-in 0.8s ease both;
+  white-space: nowrap;
 }
 
 /* ====== ACT 4 CATEGORIES (HIDDEN / TEMPORARY) ====== */
