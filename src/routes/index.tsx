@@ -514,15 +514,19 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
             <div className="gv-curtain-tap-label">{tapLabel}</div>
           </div>
         )}
-
-        {/* scroll hint after card appears */}
-        {isDone && (
-          <div className="gv-curtain-scroll-hint">
-            <span>Scroll to continue</span>
-            <div className="gv-scroll-arrow" />
-          </div>
-        )}
       </div>
+
+      {/* scroll hint — outside stage so it's not clipped */}
+      {isDone && (
+        <div className="gv-curtain-scroll-hint">
+          <span>Scroll down</span>
+          <div className="gv-curtain-scroll-arrows">
+            <div className="gv-curtain-arrow" />
+            <div className="gv-curtain-arrow" />
+            <div className="gv-curtain-arrow" />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -1132,8 +1136,9 @@ html, body { overflow-x: clip; }
   position: relative;
   background: ${INK};
   min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  padding: 80px 20px 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 80px 20px 60px;
+  gap: 40px;
 }
 
 /* stacked stage — video + image sit on top of each other */
@@ -1212,15 +1217,34 @@ html, body { overflow-x: clip; }
 }
 
 .gv-curtain-scroll-hint {
-  position: absolute;
-  bottom: -60px; left: 50%;
-  transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
-  color: rgba(237,230,214,0.55);
-  animation: gv-card-in 0.8s ease both;
+  font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
+  color: rgba(237,230,214,0.7);
   white-space: nowrap;
+  animation: gv-hint-fadein 0.8s ease both;
+  pointer-events: none;
+}
+@keyframes gv-hint-fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.gv-curtain-scroll-arrows {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.gv-curtain-arrow {
+  width: 12px; height: 12px;
+  border-right: 1.5px solid rgba(237,230,214,0.7);
+  border-bottom: 1.5px solid rgba(237,230,214,0.7);
+  transform: rotate(45deg);
+  animation: gv-arrow-cascade 1.2s ease-in-out infinite;
+}
+.gv-curtain-arrow:nth-child(1) { animation-delay: 0s; }
+.gv-curtain-arrow:nth-child(2) { animation-delay: 0.2s; }
+.gv-curtain-arrow:nth-child(3) { animation-delay: 0.4s; }
+@keyframes gv-arrow-cascade {
+  0%,100% { opacity: 0.2; }
+  50%      { opacity: 1; }
 }
 
 /* ====== ACT 4 CATEGORIES (HIDDEN / TEMPORARY) ====== */
