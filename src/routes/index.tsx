@@ -274,45 +274,20 @@ function InvitedAct() {
   const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const [dist, setDist] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const m = () => {
       const r = rowRef.current;
       if (!r) return;
       setDist(Math.max(0, r.scrollWidth - window.innerWidth + 40));
     };
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    m();
+    window.addEventListener("resize", m);
+    return () => window.removeEventListener("resize", m);
   }, []);
 
   const x = useTransform(scrollYProgress, [0, 1], [80, -dist]);
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
-
-  if (isMobile) {
-    return (
-      <section ref={ref} className="gv-marquee gv-marquee--mobile">
-        <motion.div className="gv-marquee-stack" style={{ opacity }}>
-          <div className="gv-marquee-stack-line">
-            <span className="gv-marquee-word">cordially</span>
-            <span className="gv-marquee-amp">&</span>
-            <span className="gv-marquee-word italic">warmly</span>
-          </div>
-          <div className="gv-marquee-stack-line">
-            <span className="gv-marquee-word">invited</span>
-          </div>
-          <div className="gv-marquee-stack-line small">
-            <span className="gv-marquee-word italic">to witness</span>
-          </div>
-        </motion.div>
-        <div className="gv-marquee-sub">
-          A retail house of toys, gifts, showpieces, sports, video games, RC cars & bikes.
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section ref={ref} className="gv-marquee">
@@ -1023,30 +998,6 @@ html, body { overflow-x: clip; }
   background: ${INK};
   overflow: hidden;
 }
-.gv-marquee--mobile {
-  padding: 18vh 0 16vh;
-  overflow: visible;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; text-align: center;
-}
-.gv-marquee-stack {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 8px;
-  padding: 0 20px;
-}
-.gv-marquee-stack-line {
-  display: flex; align-items: center; justify-content: center;
-  gap: 20px;
-  font-family: 'Fraunces', serif;
-  font-size: clamp(3rem, 16vw, 5.5rem);
-  font-weight: 500; line-height: 1;
-  white-space: nowrap;
-  color: ${PAPER};
-}
-.gv-marquee-stack-line.small {
-  font-size: clamp(2rem, 11vw, 3.5rem);
-  font-style: italic; font-weight: 400; color: ${GOLD};
-}
 .gv-marquee-row {
   display: flex; align-items: center; gap: 60px;
   font-family: 'Fraunces', serif;
@@ -1574,8 +1525,8 @@ html, body { overflow-x: clip; }
   .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
   .gv-scroll-arrow { height: 28px; }
 
-  .gv-marquee { padding: 18vh 0 16vh; height: 220vh; position: relative; }
-  .gv-marquee-row { gap: 36px; font-size: clamp(3.4rem, 18vw, 6rem); }
+  .gv-marquee { padding: 18vh 0 16vh; height: 400vh; position: relative; }
+  .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
   .gv-name-act { height: 200vh; }
@@ -1600,7 +1551,7 @@ html, body { overflow-x: clip; }
 
 @media (max-width: 380px) {
   .gv-envelope { width: 84vw; }
-  .gv-marquee-row { font-size: clamp(2.8rem, 16vw, 5rem); gap: 24px; }
+  .gv-marquee-row { font-size: clamp(2rem, 9vw, 3rem); gap: 20px; }
   .gv-card { padding: 32px 18px 24px; }
 }
 `;
