@@ -26,9 +26,12 @@ function playVoice(src: string) {
   a.play().catch(() => { /* blocked before user gesture — silently ignore */ });
 }
 
-/* Fires once when the ref element scrolls into view (≥30% visible) */
+/* Fires once when the ref element scrolls into view */
 function useOnVisible(ref: RefObject<HTMLElement | null>, cb: () => void) {
   const fired = useRef(false);
+  const cbRef = useRef(cb);
+  cbRef.current = cb;
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -36,14 +39,14 @@ function useOnVisible(ref: RefObject<HTMLElement | null>, cb: () => void) {
       ([entry]) => {
         if (entry.isIntersecting && !fired.current) {
           fired.current = true;
-          cb();
+          cbRef.current();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.1, rootMargin: "0px 0px -10% 0px" }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [ref, cb]);
+  }, [ref]);
 }
 
 export const Route = createFileRoute("/")({
@@ -834,12 +837,14 @@ function DateAct() {
   const dateOp = useTransform(scrollYProgress, [0.2, 0.55], [0, 1]);
   const subOp = useTransform(scrollYProgress, [0.45, 0.7], [0, 1]);
 
+  // Use a separate ref for the sticky inner div — more reliable for IO
+  const stickyRef = useRef<HTMLDivElement>(null);
   const onVisible = useCallback(() => playVoice("/section3.mp3"), []);
-  useOnVisible(ref as RefObject<HTMLElement | null>, onVisible);
+  useOnVisible(stickyRef as RefObject<HTMLElement | null>, onVisible);
 
   return (
     <section ref={ref} className="gv-date-act">
-      <div className="gv-date-sticky">
+      <div ref={stickyRef} className="gv-date-sticky">
         <motion.div className="gv-date-kicker" style={{ y: yKick, opacity: opK }}>
           <span className="gv-hairline-h" />
           MARK THE DAY
@@ -863,16 +868,17 @@ function DateAct() {
 
 function FinaleAct({ onShare }: { onShare: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 0.5], [120, 0]);
   const op = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
   const onVisible = useCallback(() => playVoice("/lastsection.mp3"), []);
-  useOnVisible(ref as RefObject<HTMLElement | null>, onVisible);
+  useOnVisible(cardRef as RefObject<HTMLElement | null>, onVisible);
 
   return (
     <section ref={ref} className="gv-finale">
-      <motion.div className="gv-card" style={{ y, opacity: op }}>
+      <motion.div ref={cardRef} className="gv-card" style={{ y, opacity: op }}>
         <div className="gv-card-corner tl" />
         <div className="gv-card-corner tr" />
         <div className="gv-card-corner bl" />
