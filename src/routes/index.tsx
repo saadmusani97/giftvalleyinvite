@@ -735,6 +735,15 @@ function ScratchAct() {
           </div>
         )}
       </div>
+
+      {/* Scratch to unlock — pulsing pop banner below card */}
+      {!revealed && (
+        <div className="gv-scratch-unlock">
+          <span className="gv-scratch-unlock-icon">✦</span>
+          <span className="gv-scratch-unlock-text">Scratch to Unlock Offer</span>
+          <span className="gv-scratch-unlock-icon">✦</span>
+        </div>
+      )}
     </section>
   );
 }
@@ -1617,6 +1626,44 @@ html, body { overflow-x: clip; }
 @media (max-width: 768px) {
   .gv-scratch-section { padding: 60px 16px 80px; }
   .gv-scratch-reward  { height: 240px; }
+}
+
+/* scratch unlock banner */
+.gv-scratch-unlock {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 36px;
+  padding: 18px 36px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, ${WAX} 0%, ${WAX_DEEP} 100%);
+  box-shadow: 0 8px 32px rgba(168,54,42,0.45), 0 0 0 0 rgba(168,54,42,0.4);
+  animation: gv-unlock-pop 1.6s cubic-bezier(0.36,0.07,0.19,0.97) infinite;
+  cursor: default;
+}
+.gv-scratch-unlock-text {
+  font-family: 'Fraunces', serif; font-weight: 700;
+  font-size: clamp(1rem, 4.5vw, 1.5rem);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: ${PAPER};
+  white-space: nowrap;
+}
+.gv-scratch-unlock-icon {
+  font-size: clamp(0.9rem, 3vw, 1.2rem);
+  color: ${GOLD};
+  animation: gv-star-spin 3s linear infinite;
+}
+.gv-scratch-unlock-icon:last-child {
+  animation-direction: reverse;
+}
+@keyframes gv-unlock-pop {
+  0%   { transform: scale(1);    box-shadow: 0 8px 32px rgba(168,54,42,0.45), 0 0 0 0 rgba(168,54,42,0.5); }
+  40%  { transform: scale(1.06); box-shadow: 0 12px 40px rgba(168,54,42,0.55), 0 0 0 14px rgba(168,54,42,0); }
+  60%  { transform: scale(0.97); }
+  100% { transform: scale(1);    box-shadow: 0 8px 32px rgba(168,54,42,0.45), 0 0 0 0 rgba(168,54,42,0); }
+}
+@keyframes gv-star-spin {
+  0%   { transform: rotate(0deg)   scale(1); }
+  50%  { transform: rotate(180deg) scale(1.3); }
+  100% { transform: rotate(360deg) scale(1); }
 }
 
 /* ====== ACT 5 DATE ====== */
