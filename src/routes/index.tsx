@@ -459,7 +459,7 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
   const handleTimeUpdate = () => {
     const vid = videoRef.current;
     if (!vid) return;
-    if (phase === "playing" && vid.currentTime >= 3) {
+    if (phase === "playing" && vid.currentTime >= 4) {
       vid.pause();
       setPhase("paused-ribbon");
     }
@@ -495,7 +495,6 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           src="/curtainsrevealingvideo.mp4"
           poster="/curtains-poster.jpg"
           playsInline
-          muted
           preload="auto"
           onTimeUpdate={handleTimeUpdate}
           onEnded={handleEnded}
