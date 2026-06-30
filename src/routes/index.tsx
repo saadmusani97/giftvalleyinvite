@@ -375,33 +375,37 @@ function PageLoader({ videoRef, onReady }: { videoRef: RefObject<HTMLVideoElemen
 
   useEffect(() => {
     let prog = 0;
+    // faster tick — jumps to 90% quickly so it feels snappy
     const tick = setInterval(() => {
-      prog = Math.min(prog + Math.random() * 4, 90);
+      prog = Math.min(prog + Math.random() * 9 + 3, 90);
       setProgress(Math.round(prog));
-    }, 120);
+    }, 80);
 
     const vid = videoRef.current;
     if (!vid) return () => clearInterval(tick);
 
-    const onCanPlay = () => {
+    const done = () => {
       clearInterval(tick);
       setProgress(100);
+      // shorter pause before exit
       setTimeout(() => {
         setExiting(true);
-        setTimeout(onReady, 900);
-      }, 600);
+        setTimeout(onReady, 600);
+      }, 300);
     };
 
-    // already buffered (e.g. cached)
-    if (vid.readyState >= 4) { onCanPlay(); return () => clearInterval(tick); }
+    // readyState 3 = have future data, good enough to start playing
+    if (vid.readyState >= 3) { done(); return () => clearInterval(tick); }
 
-    vid.addEventListener("canplaythrough", onCanPlay);
-    const fallback = setTimeout(onCanPlay, 12000);
+    // canplay fires as soon as browser can start — much earlier than canplaythrough
+    vid.addEventListener("canplay", done, { once: true });
+    // fallback cut from 12s → 4s
+    const fallback = setTimeout(done, 4000);
 
     return () => {
       clearInterval(tick);
       clearTimeout(fallback);
-      vid.removeEventListener("canplaythrough", onCanPlay);
+      vid.removeEventListener("canplay", done);
     };
   }, [onReady, videoRef]);
 
@@ -1243,11 +1247,12 @@ html, body { overflow-x: clip; }
   position: fixed; inset: 0; z-index: 9999;
   background: ${INK};
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transition: opacity 0.5s ease;
 }
 .gv-loader--exit {
   opacity: 0;
   pointer-events: none;
+  transition: opacity 0.5s ease;
 }
 .gv-loader-inner {
   display: flex; flex-direction: column; align-items: center;
