@@ -705,7 +705,6 @@ function ScratchAct() {
           <div className="gv-scratch-badge">25% OFF</div>
           <div className="gv-scratch-reward-line">on your first purchase</div>
           <div className="gv-scratch-reward-valid">Valid for first 3 days of opening</div>
-          <div className="gv-scratch-reward-code">USE CODE: <strong>GV25</strong></div>
           {revealed && (
             <div className="gv-scratch-confetti" aria-hidden>
               {["✦","★","✦","★","✦","★","✦","★"].map((s, i) => (
