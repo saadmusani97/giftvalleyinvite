@@ -5,14 +5,15 @@ import {
   useScroll,
   useTransform,
   useSpring,
+  useMotionValueEvent,
 } from "framer-motion";
 
 /* ── Audio manager ─────────────────────────────────────────────────────────
-   Preload all audio at mount. On mobile, the first user tap (video play)
-   unlocks the audio context. We keep a single set of pre-created Audio
-   elements so subsequent plays aren't treated as new autoplay attempts.
+   Preload all audio at mount. On mobile, we unlock the audio context on
+   first tap using a silent dedicated unlock element — NOT the voice pool.
 ─────────────────────────────────────────────────────────────────────────── */
 const audioPool: Record<string, HTMLAudioElement> = {};
+let audioUnlocked = false;
 
 function preloadAudio(srcs: string[]) {
   if (typeof window === "undefined") return;
@@ -26,15 +27,22 @@ function preloadAudio(srcs: string[]) {
   });
 }
 
+// Call once on first user gesture — uses a silent dummy, not the voice pool
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  const silence = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+  silence.play().catch(() => {});
+}
+
 function playVoice(src: string) {
-  // Stop anything currently playing
   Object.values(audioPool).forEach((a) => {
     if (!a.paused) { a.pause(); a.currentTime = 0; }
   });
   const a = audioPool[src];
   if (!a) return;
   a.currentTime = 0;
-  a.play().catch(() => {/* blocked — ignore */});
+  a.play().catch(() => {});
 }
 
 /* Fires once when the ref element scrolls into view */
@@ -498,10 +506,8 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
     const vid = videoRef.current;
     if (!vid || !videoReady || seekingRef.current) return;
 
-    // First tap: unlock all pooled audio elements for mobile
-    Object.values(audioPool).forEach((a) => {
-      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
-    });
+    // First tap: unlock audio context with a silent dummy
+    unlockAudio();
 
     if (phase === "idle") {
       // On mobile, seek to 0 first, wait for seeked, then play
@@ -863,14 +869,18 @@ function DateAct() {
   const dateOp = useTransform(scrollYProgress, [0.2, 0.55], [0, 1]);
   const subOp = useTransform(scrollYProgress, [0.45, 0.7], [0, 1]);
 
-  // Use a separate ref for the sticky inner div — more reliable for IO
-  const stickyRef = useRef<HTMLDivElement>(null);
-  const onVisible = useCallback(() => playVoice("/section3.mp3"), []);
-  useOnVisible(stickyRef as RefObject<HTMLElement | null>, onVisible);
+  // Trigger section3 voice when date section starts scrolling into view
+  const dateVoiceFired = useRef(false);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (v > 0.05 && !dateVoiceFired.current) {
+      dateVoiceFired.current = true;
+      playVoice("/section3.mp3");
+    }
+  });
 
   return (
     <section ref={ref} className="gv-date-act">
-      <div ref={stickyRef} className="gv-date-sticky">
+      <div className="gv-date-sticky">
         <motion.div className="gv-date-kicker" style={{ y: yKick, opacity: opK }}>
           <span className="gv-hairline-h" />
           MARK THE DAY
@@ -894,17 +904,21 @@ function DateAct() {
 
 function FinaleAct({ onShare }: { onShare: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 0.5], [120, 0]);
   const op = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
 
-  const onVisible = useCallback(() => playVoice("/lastsection.mp3"), []);
-  useOnVisible(cardRef as RefObject<HTMLElement | null>, onVisible);
+  const finaleVoiceFired = useRef(false);
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    if (v > 0.05 && !finaleVoiceFired.current) {
+      finaleVoiceFired.current = true;
+      playVoice("/lastsection.mp3");
+    }
+  });
 
   return (
     <section ref={ref} className="gv-finale">
-      <motion.div ref={cardRef} className="gv-card" style={{ y, opacity: op }}>
+      <motion.div className="gv-card" style={{ y, opacity: op }}>
         <div className="gv-card-corner tl" />
         <div className="gv-card-corner tr" />
         <div className="gv-card-corner bl" />
