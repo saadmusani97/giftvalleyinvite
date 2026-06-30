@@ -663,23 +663,46 @@ function ScratchAct() {
     e.preventDefault();
     const { x, y } = getPos(e, canvas);
     ctx.globalCompositeOperation = "destination-out";
+
+    // Large soft brush — one swipe clears a big area
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, 60);
+    gradient.addColorStop(0,   "rgba(0,0,0,1)");
+    gradient.addColorStop(0.6, "rgba(0,0,0,0.9)");
+    gradient.addColorStop(1,   "rgba(0,0,0,0)");
+    ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(x, y, 28, 0, Math.PI * 2);
+    ctx.arc(x, y, 60, 0, Math.PI * 2);
     ctx.fill();
 
-    // Calculate how much is revealed
+    // Sample every 4th pixel for perf
     const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     let cleared = 0;
-    for (let i = 3; i < data.length; i += 4) if (data[i] === 0) cleared++;
-    const pct = Math.round((cleared / (canvas.width * canvas.height)) * 100);
+    const total = (canvas.width * canvas.height) / 4;
+    for (let i = 3; i < data.length; i += 16) if (data[i] === 0) cleared++;
+    const pct = Math.round((cleared / total) * 100);
     setPercent(pct);
+  };
 
-    if (pct > 55 && !hasPopped.current) {
-      hasPopped.current = true;
-      // Clear the whole canvas for clean reveal
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      setRevealed(true);
-    }
+  const autoComplete = (canvas: HTMLCanvasElement) => {
+    const ctx = canvas.getContext("2d");
+    if (!ctx || hasPopped.current) return;
+    hasPopped.current = true;
+
+    // Animate the remaining silver away in steps
+    let alpha = 1;
+    const fade = () => {
+      alpha -= 0.12;
+      if (alpha <= 0) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        setRevealed(true);
+        return;
+      }
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fillStyle = `rgba(0,0,0,${0.12})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      requestAnimationFrame(fade);
+    };
+    requestAnimationFrame(fade);
   };
 
   const startScratch = (e: React.MouseEvent | React.TouchEvent) => {
@@ -691,6 +714,11 @@ function ScratchAct() {
   const stopScratch = () => {
     isDrawing.current = false;
     setScratching(false);
+    // If user lifted finger with >50% scratched, auto-complete with burst
+    const canvas = canvasRef.current;
+    if (canvas && percent >= 50 && !hasPopped.current) {
+      autoComplete(canvas);
+    }
   };
 
   return (
@@ -707,7 +735,7 @@ function ScratchAct() {
           <div className="gv-scratch-reward-valid">Valid for first 3 days of opening</div>
           {revealed && (
             <div className="gv-scratch-confetti" aria-hidden>
-              {["✦","★","✦","★","✦","★","✦","★"].map((s, i) => (
+              {["✦","★","✦","★","✦","★","✦","★","✦","★","✦","★"].map((s, i) => (
                 <span key={i} className="gv-scratch-star" style={{ "--i": i } as React.CSSProperties}>{s}</span>
               ))}
             </div>
@@ -1600,32 +1628,34 @@ html, body { overflow-x: clip; }
 }
 /* pop animation on full reveal */
 .gv-scratch-wrap--revealed .gv-scratch-badge {
-  animation: gv-scratch-pop 0.5s cubic-bezier(0.22,1,0.36,1) both;
+  animation: gv-scratch-pop 0.6s cubic-bezier(0.22,1,0.36,1) both;
 }
 @keyframes gv-scratch-pop {
-  0%   { transform: scale(0.5); opacity: 0; }
-  70%  { transform: scale(1.12); }
-  100% { transform: scale(1); opacity: 1; }
+  0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.18) rotate(3deg); }
+  80%  { transform: scale(0.95) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg);  opacity: 1; }
 }
 /* confetti stars */
 .gv-scratch-confetti {
   position: absolute; inset: 0;
   pointer-events: none;
-  overflow: hidden;
+  overflow: visible;
 }
 .gv-scratch-star {
   position: absolute;
-  font-size: 18px;
+  font-size: clamp(16px, 4vw, 26px);
   color: ${GOLD};
-  animation: gv-star-burst 1.2s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: calc(var(--i) * 0.07s);
-  left: calc(10% + var(--i) * 11%);
-  top: 10%;
+  animation: gv-star-burst 1.6s cubic-bezier(0.22,1,0.36,1) both;
+  animation-delay: calc(var(--i) * 0.05s);
+  left: calc(4% + var(--i) * 8.5%);
+  top: 50%;
 }
 @keyframes gv-star-burst {
-  0%   { opacity: 0; transform: translateY(0) scale(0); }
-  50%  { opacity: 1; transform: translateY(-60px) scale(1.3) rotate(30deg); }
-  100% { opacity: 0; transform: translateY(-110px) scale(0.8) rotate(60deg); }
+  0%   { opacity: 0;   transform: translateY(0)     scale(0)   rotate(0deg); }
+  30%  { opacity: 1;   transform: translateY(-40px)  scale(1.6) rotate(40deg); }
+  60%  { opacity: 0.9; transform: translateY(-90px)  scale(1.2) rotate(80deg); }
+  100% { opacity: 0;   transform: translateY(-150px) scale(0.6) rotate(120deg); }
 }
 @media (max-width: 768px) {
   .gv-scratch-section { padding: 60px 16px 80px; }
