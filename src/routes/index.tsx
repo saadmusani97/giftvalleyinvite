@@ -528,6 +528,16 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
           aria-hidden={!isDone}
         />
 
+        {/* glass pill scroll button — overlaid on card bottom */}
+        {isDone && (
+          <div className="gv-curtain-scroll-pill">
+            <span>Scroll Down</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 5v14M5 12l7 7 7-7"/>
+            </svg>
+          </div>
+        )}
+
         {/* tap overlay — idle: text only; paused: blur + dim + text */}
         {showOverlay && (
           <div className={`gv-curtain-overlay${phase === "paused-ribbon" ? " gv-curtain-overlay--blur" : ""}`}>
@@ -536,17 +546,6 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
         )}
       </div>
 
-      {/* scroll hint — outside stage so it's not clipped */}
-      {isDone && (
-        <div className="gv-curtain-scroll-hint">
-          <span>Scroll down</span>
-          <div className="gv-curtain-scroll-arrows">
-            <div className="gv-curtain-arrow" />
-            <div className="gv-curtain-arrow" />
-            <div className="gv-curtain-arrow" />
-          </div>
-        </div>
-      )}
     </section>
   );
 }
@@ -1321,7 +1320,6 @@ html, body { overflow-x: clip; }
   min-height: 100vh;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 80px 20px 60px;
-  gap: 40px;
 }
 
 /* stacked stage — video + image sit on top of each other */
@@ -1399,35 +1397,36 @@ html, body { overflow-x: clip; }
   50%      { opacity: 0.55; }
 }
 
-.gv-curtain-scroll-hint {
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+/* glass pill scroll button — absolute on card image bottom */
+.gv-curtain-scroll-pill {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 28px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.35);
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.5),
+    inset 0 -1px 0 rgba(0,0,0,0.08);
+  color: #111;
   font-family: 'Inter', sans-serif;
-  font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase;
-  color: rgba(237,230,214,0.7);
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.18em; text-transform: uppercase;
   white-space: nowrap;
-  animation: gv-hint-fadein 0.8s ease both;
+  cursor: pointer;
   pointer-events: none;
+  animation: gv-hint-fadein 0.8s ease both, gv-pill-bob 2s ease-in-out 0.8s infinite;
 }
-@keyframes gv-hint-fadein {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.gv-curtain-scroll-arrows {
-  display: flex; flex-direction: column; align-items: center; gap: 0;
-}
-.gv-curtain-arrow {
-  width: 12px; height: 12px;
-  border-right: 1.5px solid rgba(237,230,214,0.7);
-  border-bottom: 1.5px solid rgba(237,230,214,0.7);
-  transform: rotate(45deg);
-  animation: gv-arrow-cascade 1.2s ease-in-out infinite;
-}
-.gv-curtain-arrow:nth-child(1) { animation-delay: 0s; }
-.gv-curtain-arrow:nth-child(2) { animation-delay: 0.2s; }
-.gv-curtain-arrow:nth-child(3) { animation-delay: 0.4s; }
-@keyframes gv-arrow-cascade {
-  0%,100% { opacity: 0.2; }
-  50%      { opacity: 1; }
+@keyframes gv-pill-bob {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-5px); }
 }
 
 /* ====== ACT 4 CATEGORIES (HIDDEN / TEMPORARY) ====== */
