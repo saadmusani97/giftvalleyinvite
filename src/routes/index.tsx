@@ -274,41 +274,20 @@ function InvitedAct() {
   const rowRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const [dist, setDist] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const check = () => {
-      setIsMobile(window.innerWidth <= 768);
+    const m = () => {
       const r = rowRef.current;
       if (!r) return;
       setDist(Math.max(0, r.scrollWidth - window.innerWidth + 40));
     };
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
+    m();
+    window.addEventListener("resize", m);
+    return () => window.removeEventListener("resize", m);
   }, []);
 
   const x = useTransform(scrollYProgress, [0, 1], [80, -dist]);
   const opacity = useTransform(scrollYProgress, [0, 0.15, 0.85, 1], [0, 1, 1, 0]);
-
-  // On mobile: static centered stack, no scroll animation, no dead height
-  if (isMobile) {
-    return (
-      <section className="gv-marquee gv-marquee--static">
-        <div className="gv-marquee-static-row">
-          <span className="gv-marquee-word">warmly</span>
-          <span className="gv-marquee-amp">&</span>
-          <span className="gv-marquee-word italic">invited</span>
-        </div>
-        <div className="gv-marquee-static-row">
-          <span className="gv-marquee-word" style={{ fontSize: "clamp(1.8rem,8vw,3rem)", opacity: 0.7 }}>to witness</span>
-        </div>
-        <div className="gv-marquee-sub">
-          A retail house of toys, gifts, showpieces, sports, video games, RC cars & bikes.
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section ref={ref} className="gv-marquee">
@@ -1856,7 +1835,7 @@ html, body { overflow-x: clip; }
   .gv-scroll-arrow { height: 28px; }
 
   .gv-marquee { padding: 4vh 0 3vh; height: 80vh; position: relative; }
-  .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
+  .gv-marquee-row { gap: 20px; font-size: clamp(2rem, 9vw, 3.2rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
   .gv-name-act { height: 100vh; }
