@@ -88,7 +88,6 @@ function Invitation() {
 
         <CurtainRevealAct videoRef={videoRef} videoReady={loaded} />
         <InvitedAct />
-        <NameAct />
         <ScratchAct />
         <DateAct />
         <FinaleAct onShare={onShare} />
@@ -693,7 +692,7 @@ function ScratchAct() {
 
   return (
     <section className="gv-scratch-section">
-      <div className="gv-scratch-eyebrow">— Opening Offer —</div>
+      <div className="gv-scratch-eyebrow">— Special Offer —</div>
       <h3 className="gv-scratch-title">You've unlocked a special deal</h3>
       <p className="gv-scratch-sub">Scratch the card below to reveal your exclusive offer</p>
 
