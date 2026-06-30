@@ -1,11 +1,50 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type ReactElement, type RefObject } from "react";
+import { useEffect, useRef, useState, useCallback, type ReactElement, type RefObject } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
 } from "framer-motion";
+
+/* ── Audio manager ─────────────────────────────────────────────────────────
+   Only one voice plays at a time. Calling play() on a new track stops the
+   current one first. Mobile requires a user gesture before any audio plays;
+   we handle this by deferring until the first tap (which happens naturally
+   since the user taps to start the video).
+─────────────────────────────────────────────────────────────────────────── */
+let currentAudio: HTMLAudioElement | null = null;
+
+function playVoice(src: string) {
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+  }
+  const a = new Audio(src);
+  a.volume = 1;
+  currentAudio = a;
+  a.play().catch(() => { /* blocked before user gesture — silently ignore */ });
+}
+
+/* Fires once when the ref element scrolls into view (≥30% visible) */
+function useOnVisible(ref: RefObject<HTMLElement | null>, cb: () => void) {
+  const fired = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !fired.current) {
+          fired.current = true;
+          cb();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [ref, cb]);
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -468,9 +507,10 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
     }
   };
 
-  // Video finished → crossfade to card
+  // Video finished → crossfade to card + play section1 voice
   const handleEnded = () => {
     setPhase("done");
+    playVoice("/section1.mp3");
   };
 
   const tapLabel =
@@ -598,12 +638,16 @@ const CAT_DESC: Record<string, string> = {
 /* ============== SCRATCH CARD ============== */
 
 function ScratchAct() {
+  const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [revealed, setRevealed] = useState(false);
   const [scratching, setScratching] = useState(false);
   const [percent, setPercent] = useState(0);
   const isDrawing = useRef(false);
   const hasPopped = useRef(false);
+
+  const onVisible = useCallback(() => playVoice("/section2.mp3"), []);
+  useOnVisible(sectionRef as RefObject<HTMLElement | null>, onVisible);
 
   // Build the scratch layer once
   useEffect(() => {
@@ -722,7 +766,7 @@ function ScratchAct() {
   };
 
   return (
-    <section className="gv-scratch-section">
+    <section ref={sectionRef} className="gv-scratch-section">
       <div className="gv-scratch-eyebrow">— Special Offer —</div>
       <h3 className="gv-scratch-title">You've unlocked a special deal</h3>
       <p className="gv-scratch-sub">Scratch the card below to reveal your exclusive offer</p>
@@ -790,6 +834,9 @@ function DateAct() {
   const dateOp = useTransform(scrollYProgress, [0.2, 0.55], [0, 1]);
   const subOp = useTransform(scrollYProgress, [0.45, 0.7], [0, 1]);
 
+  const onVisible = useCallback(() => playVoice("/section3.mp3"), []);
+  useOnVisible(ref as RefObject<HTMLElement | null>, onVisible);
+
   return (
     <section ref={ref} className="gv-date-act">
       <div className="gv-date-sticky">
@@ -819,6 +866,9 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
   const y = useTransform(scrollYProgress, [0, 0.5], [120, 0]);
   const op = useTransform(scrollYProgress, [0, 0.4], [0, 1]);
+
+  const onVisible = useCallback(() => playVoice("/lastsection.mp3"), []);
+  useOnVisible(ref as RefObject<HTMLElement | null>, onVisible);
 
   return (
     <section ref={ref} className="gv-finale">
