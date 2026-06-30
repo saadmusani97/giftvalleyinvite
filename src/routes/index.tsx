@@ -8,22 +8,33 @@ import {
 } from "framer-motion";
 
 /* ── Audio manager ─────────────────────────────────────────────────────────
-   Only one voice plays at a time. Calling play() on a new track stops the
-   current one first. Mobile requires a user gesture before any audio plays;
-   we handle this by deferring until the first tap (which happens naturally
-   since the user taps to start the video).
+   Preload all audio at mount. On mobile, the first user tap (video play)
+   unlocks the audio context. We keep a single set of pre-created Audio
+   elements so subsequent plays aren't treated as new autoplay attempts.
 ─────────────────────────────────────────────────────────────────────────── */
-let currentAudio: HTMLAudioElement | null = null;
+const audioPool: Record<string, HTMLAudioElement> = {};
+
+function preloadAudio(srcs: string[]) {
+  if (typeof window === "undefined") return;
+  srcs.forEach((src) => {
+    if (!audioPool[src]) {
+      const a = new Audio(src);
+      a.preload = "auto";
+      a.load();
+      audioPool[src] = a;
+    }
+  });
+}
 
 function playVoice(src: string) {
-  if (currentAudio) {
-    currentAudio.pause();
-    currentAudio.currentTime = 0;
-  }
-  const a = new Audio(src);
-  a.volume = 1;
-  currentAudio = a;
-  a.play().catch(() => { /* blocked before user gesture — silently ignore */ });
+  // Stop anything currently playing
+  Object.values(audioPool).forEach((a) => {
+    if (!a.paused) { a.pause(); a.currentTime = 0; }
+  });
+  const a = audioPool[src];
+  if (!a) return;
+  a.currentTime = 0;
+  a.play().catch(() => {/* blocked — ignore */});
 }
 
 /* Fires once when the ref element scrolls into view */
@@ -106,6 +117,16 @@ function Invitation() {
   const [toast, setToast] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Preload all voice files immediately so mobile audio context is ready
+  useEffect(() => {
+    preloadAudio([
+      "/section1.mp3",
+      "/section2.mp3",
+      "/section3.mp3",
+      "/lastsection.mp3",
+    ]);
+  }, []);
 
   const onShare = async () => {
     const url = typeof window !== "undefined" ? window.location.href : "";
@@ -476,6 +497,11 @@ function CurtainRevealAct({ videoRef, videoReady }: { videoRef: RefObject<HTMLVi
   const handleTap = () => {
     const vid = videoRef.current;
     if (!vid || !videoReady || seekingRef.current) return;
+
+    // First tap: unlock all pooled audio elements for mobile
+    Object.values(audioPool).forEach((a) => {
+      a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+    });
 
     if (phase === "idle") {
       // On mobile, seek to 0 first, wait for seeked, then play
