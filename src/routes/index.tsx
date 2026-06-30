@@ -1143,8 +1143,8 @@ html, body { overflow-x: clip; }
 /* ====== ACT 2 MARQUEE ====== */
 .gv-marquee {
   position: relative;
-  height: 130vh;
-  padding: 12vh 0 10vh;
+  height: 80vh;
+  padding: 6vh 0 4vh;
   background: ${INK};
   overflow: hidden;
 }
@@ -1489,7 +1489,7 @@ html, body { overflow-x: clip; }
 /* ====== SCRATCH CARD ====== */
 .gv-scratch-section {
   background: ${INK};
-  padding: 80px 20px 100px;
+  padding: 40px 20px 100px;
   display: flex; flex-direction: column; align-items: center;
   text-align: center;
 }
@@ -1821,7 +1821,7 @@ html, body { overflow-x: clip; }
   .gv-scroll-hint { bottom: 22px; font-size: 9px; letter-spacing: 0.24em; }
   .gv-scroll-arrow { height: 28px; }
 
-  .gv-marquee { padding: 10vh 0 8vh; height: 120vh; position: relative; }
+  .gv-marquee { padding: 4vh 0 3vh; height: 80vh; position: relative; }
   .gv-marquee-row { gap: 28px; font-size: clamp(2.4rem, 11vw, 4rem); }
   .gv-marquee-sub { margin-top: 36px; padding: 0 24px; font-size: 0.95rem; }
 
