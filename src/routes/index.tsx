@@ -75,12 +75,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "You are cordially invited to the Grand Opening of GiftValley — 1 July 2026, Shop No. 8, Akash Ganga Building, Naya Nagar.",
+          "You are cordially invited to the Grand Opening of GiftValley — 2 July 2026, Shop No. 8, Akash Ganga Building, Naya Nagar.",
       },
       { property: "og:title", content: "GiftValley — Grand Opening" },
       {
         property: "og:description",
-        content: "Where Every Gift Tells a Story. 1 July 2026.",
+        content: "Where Every Gift Tells a Story. 2 July 2026.",
       },
     ],
     links: [
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/")({
 });
 
 const NAME = "GIFTVALLEY";
-const DATE_TEXT = "1 · JULY · 2026";
+const DATE_TEXT = "2 · JULY · 2026";
 
 type Cat = { name: string; tag: string; icon: ReactElement };
 
@@ -185,7 +185,7 @@ function Nav() {
       <div className="gv-nav-mark">GV</div>
       <div className="gv-nav-meta">
         <span className="gv-dot" />
-        <span>Grand Opening · 01.07.2026</span>
+        <span>Grand Opening · 02.07.2026</span>
       </div>
     </div>
   );
@@ -485,7 +485,7 @@ function PageLoader({ videoRef, onReady }: { videoRef: RefObject<HTMLVideoElemen
       <div className="gv-loader-inner">
         <div className="gv-loader-mono">GV</div>
         <p className="gv-loader-script">You are invited</p>
-        <div className="gv-loader-sub">GiftValley · Grand Opening · 1 July 2026</div>
+        <div className="gv-loader-sub">GiftValley · Grand Opening · 2 July 2026</div>
         <div className="gv-loader-bar-wrap">
           <div className="gv-loader-bar" style={{ width: `${progress}%` }} />
         </div>
@@ -893,7 +893,7 @@ function DateAct() {
           {DATE_TEXT}
         </motion.h2>
         <motion.p className="gv-date-sub" style={{ opacity: subOp }}>
-          Wednesday · opening in the evening
+          Thursday · opening in the evening
         </motion.p>
       </div>
     </section>
@@ -933,7 +933,7 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
         <div className="gv-card-meta">
           <div>
             <div className="gv-meta-k">DATE</div>
-            <div className="gv-meta-v">1 July 2026</div>
+            <div className="gv-meta-v">2 July 2026</div>
           </div>
           <div>
             <div className="gv-meta-k">TIME</div>
@@ -941,7 +941,7 @@ function FinaleAct({ onShare }: { onShare: () => void }) {
           </div>
           <div>
             <div className="gv-meta-k">DAY</div>
-            <div className="gv-meta-v">Wednesday</div>
+            <div className="gv-meta-v">Thursday</div>
           </div>
         </div>
         <div className="gv-card-rule" />
